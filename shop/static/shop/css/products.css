@@ -1,35 +1,20 @@
-.card {
-    width: 444px;
+@media (max-width: 767.98px) { .border-sm-start-none { border-left: none !important; } }
+
+.card-body .row {
+  display: flex;
+  align-items: stretch;
 }
 
-body {
-    background: #eee;
+.card-body .row > div {
+  display: flex;
+  flex-direction: column;
 }
 
-.price {
-    font-family: 'DejaVu Sans Mono', monospace;
-    font-size: 24px;
-    font-weight: 300;
-    color: #000;
+.card-body .row > .col-md-6.col-lg-6.col-xl-6 {
+  justify-content: space-between;
 }
 
-.currency {
-    font-family: 'DejaVu Sans Mono', monospace;
-    font-size: 24px;
-    font-weight: 300;
-    color: #aaa;
-    margin-left: 5px;
+.card-body .row > .col-md-6.col-lg-6.col-xl-6 .mt-auto {
+  margin-top: auto;
 }
 
-.product-description {
-  font-family: 'Arial', sans-serif;
-  font-size: 18px;
-  font-weight: 400;
-  color: #333;
-}
-
-.product-image {
-  width: 200px;
-  height: 200px;
-  object-fit: contain;
-}

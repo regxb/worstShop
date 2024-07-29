@@ -1,37 +1,63 @@
 {% extends 'base.html' %}
 {% load static %}
 {% block style %}
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
-  <link rel="stylesheet" href="{% static 'shop/css/products.css' %}">
+
 {% endblock %}
 {% block content %}
-
-
-
-
-<div class="d-flex justify-content-center container mt-5">
-  <div class="row">
-    {% for product in products %}
-      <div class="col">
-        <div class="card p-3 bg-white d-flex flex-column" style="height: 400px; width: 300px;">
-          <i class="fa fa-apple"></i>
-          <div class="about-product text-center mt-2 flex-grow-1">
-            <img src="{{ product.image.url }}" class="product-image">
-            <div>
-              <h4 class="mt-2 product-description">
-                <a href="{{ product.get_absolute_url }}">{{ product.description }}</a>
-              </h4>
+  <section style="background-color: #eee;">
+    <div class="container py-5">
+      {% for product in products %}
+        <div class="row justify-content-center mb-3">
+          <div class="col-md-12 col-xl-10">
+            <div class="card shadow-0 border rounded-3">
+              <div class="card-body">
+                <div class="row">
+                  <div class="col-md-12 col-lg-3 col-xl-3 mb-4 mb-lg-0">
+                    <div class="bg-image hover-zoom ripple rounded ripple-surface">
+                      <img src="{{ product.image.url }}" class="product-image w-50"/>
+                      <a href="#">
+                        <div class="hover-overlay">
+                          <div class="mask" style="background-color: rgba(253, 253, 253, 0.15);"></div>
+                        </div>
+                      </a>
+                    </div>
+                  </div>
+                  <div class="col-md-6 col-lg-6 col-xl-6 d-flex flex-column">
+                    <h5>{{ product.title }}</h5>
+                    <p class="mb-4 mb-md-0">
+                      {{ product.description }}
+                    </p>
+                    <div class="mt-auto d-flex flex-row">
+                      <div class="text-danger mb-1 me-2" style="margin-right: 5px">
+                        <i class="fa fa-star"></i>
+                        <i class="fa fa-star"></i>
+                        <i class="fa fa-star"></i>
+                        <i class="fa fa-star"></i>
+                      </div>
+                      <span>310</span>
+                    </div>
+                  </div>
+                  <div class="col-md-6 col-lg-3 col-xl-3 border-sm-start-none border-start">
+                    <div class="d-flex flex-row align-items-center mb-1">
+                      <h4 class="mb-1" style="margin-right: 8px">{{ product.price }}₽ </h4>
+                      <span class="text-danger"><s> {{ product.price }}₽</s></span>
+                    </div>
+                    <div class="d-flex flex-column mt-4">
+                      <button data-mdb-button-init data-mdb-ripple-init class="btn btn-primary btn-sm" type="button">
+                        Добавить в корзину
+                      </button>
+                      <button data-mdb-button-init data-mdb-ripple-init class="btn btn-outline-primary btn-sm mt-2"
+                              type="button">
+                        В избранное
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
-          <div class="d-flex justify-content-center total font-weight-bold mt-2 align-self-end">
-            <span class="price">{{ product.price }}</span>
-            <span class="currency">₽</span>
-          </div>
         </div>
-      </div>
-    {% endfor %}
-  </div>
-</div>
-
-
+      {% endfor %}
+    </div>
+  </section>
 {% endblock %}

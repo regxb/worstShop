@@ -4,8 +4,12 @@ from shop.models import Product, ProductProxy, Category
 
 
 # Create your views here.
-def products_view(request):
-    products = ProductProxy.objects.all()
+def products_view(request, slug):
+    category = get_object_or_404(Category, slug=slug)
+    print(category)
+    products = ProductProxy.objects.filter(category=category)
+    print(products)
+
     return render(request, 'shop/products.html', {"products": products})
 
 
@@ -14,8 +18,5 @@ def product_detail_view(request, slug):
     return render(request, 'shop/product_detail.html', {'product': product})
 
 
-def category_list(request, slug):
-    category = get_object_or_404(Category, slug=slug)
-    products = ProductProxy.objects.select_related('category').filter(category=category)
-    context = {'products': products, 'category': category}
-    return render(request, 'shop/category_list.html', context)
+def category_list(request):
+    return render(request, 'shop/category_list.html')

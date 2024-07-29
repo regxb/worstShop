@@ -58,7 +58,7 @@
           <!-- Logo -->
           <div class="col-lg-2 col-sm-3 col-3 order-1">
             <div class="logo_container">
-              <div class="logo"><a href="#">WorstShop</a></div>
+              <div class="logo"><a href="{% url 'shop:category_list' %}" style="text-decoration: none;">WorstShop</a></div>
             </div>
           </div>
 
@@ -116,26 +116,26 @@
       <div class="container">
         <div class="row">
           <div class="col">
-            <div class="main_nav_content d-flex flex-row">
+            <div class="main_nav_content d-flex flex-row justify-content-center">
 
               <!-- Main Nav Menu -->
 
               <div class="main_nav_menu">
                 <ul class="standard_dropdown main_nav_dropdown">
                   {% for category in categories %}
-                    <li><a href="#">{{ category.name }}<i class="fas fa-chevron-down"></i></a>
+                    <li><a href="{{ category.get_absolute_url }}">{{ category.name }}<i class="fas fa-chevron-down"></i></a>
                       {% if category.children %}
                         <ul>
                           {% for subcategory in category.children.all %}
-                            <li><a href="#">{{ subcategory.name }}<i class="fas fa-chevron-down"></i></a>
+                            <li><a href="{{ subcategory.get_absolute_url }}">{{ subcategory.name }}<i class="fas fa-chevron-down"></i></a>
                               {% if subcategory.children %}
                                 <ul>
                                   {% for subsubcategory in subcategory.children.all %}
-                                    <li><a href="#">{{ subsubcategory.name }}<i class="fas fa-chevron-down"></i></a>
+                                    <li><a href="{{ subsubcategory.get_absolute_url }}">{{ subsubcategory.name }}<i class="fas fa-chevron-down"></i></a>
                                       {% if subsubcategory.children %}
                                         <ul>
                                           {% for 3xsubcategory in subsubcategory.children.all %}
-                                            <li><a href="#">{{ 3xsubcategory.name }}<i
+                                            <li><a href="{{ 3xsubcategory.get_absolute_url }}">{{ 3xsubcategory.name }}<i
                                                     class="fas fa-chevron-down"></i></a>
                                             </li>
                                           {% endfor %}

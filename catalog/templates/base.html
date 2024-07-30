@@ -3,15 +3,13 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  {% block style %}
-
-  {% endblock %}
-  <link rel="stylesheet" href="{% static 'shop/css/base.css' %}">
+  <link rel="stylesheet" href="{% static 'catalog/css/base.css' %}">
   <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.1/css/bootstrap.min.css">
   <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.8.1/css/all.css">
   <script type="text/javascript"
           src="https://stackpath.bootstrapcdn.com/bootstrap/4.1.1/js/bootstrap.bundle.min.js"></script>
   <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+
   <title>Title</title>
 </head>
 <body>
@@ -29,8 +27,9 @@
         <div class="row">
           <div class="col d-flex flex-row">
             <div class="top_bar_contact_item">
-              <div class="top_bar_icon"><img
-                      src="https://res.cloudinary.com/dxfq3iotg/image/upload/v1560918577/phone.png" alt=""></div>
+              <div class="top_bar_icon">
+                <img src="https://res.cloudinary.com/dxfq3iotg/image/upload/v1560918577/phone.png" alt="">
+              </div>
               +12 3456 789 000
             </div>
             <div class="top_bar_contact_item">
@@ -56,14 +55,16 @@
         <div class="row">
 
           <!-- Logo -->
-          <div class="col-lg-2 col-sm-3 col-3 order-1">
+          <div class="col-lg-3 col-sm-3 col-3 order-1">
             <div class="logo_container">
-              <div class="logo"><a href="{% url 'shop:category_list' %}" style="text-decoration: none;">WorstShop</a></div>
+              <div class="logo" style="margin-right: 50px">
+                <a href="{% url 'catalog:category_list' %}" style="text-decoration: none;">WorstShop</a>
+              </div>
             </div>
           </div>
 
           <!-- Search -->
-          <div class="col-lg-6 col-12 order-lg-2 order-3 text-lg-left text-right">
+          <div class="col-lg-5 col-12 order-lg-2 order-3 text-lg-left text-right">
             <div class="header_search">
               <div class="header_search_content">
                 <div class="header_search_form_container">
@@ -96,11 +97,11 @@
                 <div class="cart_container d-flex flex-row align-items-center justify-content-end">
                   <div class="cart_icon">
                     <img src="https://res.cloudinary.com/dxfq3iotg/image/upload/v1560918704/cart.png" alt="">
-                    <div class="cart_count"><span>3</span></div>
+                    <div class="cart_count"><span>{{ cart.get_total_quantity }}</span></div>
                   </div>
                   <div class="cart_content">
-                    <div class="cart_text"><a href="#">Корзина</a></div>
-                    <div class="cart_price">18500.00₽</div>
+                    <div class="cart_text"><a href="{% url 'cart:cart_view' %}">Корзина</a></div>
+                    <div class="cart_price">{{ cart.get_total_price }}₽</div>
                   </div>
                 </div>
               </div>
@@ -115,7 +116,7 @@
     <nav class="main_nav">
       <div class="container">
         <div class="row">
-          <div class="col">
+          <div class="col-12 col-md-12">
             <div class="main_nav_content d-flex flex-row justify-content-center">
 
               <!-- Main Nav Menu -->
@@ -127,16 +128,19 @@
                       {% if category.children %}
                         <ul>
                           {% for subcategory in category.children.all %}
-                            <li><a href="{{ subcategory.get_absolute_url }}">{{ subcategory.name }}<i class="fas fa-chevron-down"></i></a>
+                            <li><a href="{{ subcategory.get_absolute_url }}">{{ subcategory.name }}<i
+                                    class="fas fa-chevron-down"></i></a>
                               {% if subcategory.children %}
                                 <ul>
                                   {% for subsubcategory in subcategory.children.all %}
-                                    <li><a href="{{ subsubcategory.get_absolute_url }}">{{ subsubcategory.name }}<i class="fas fa-chevron-down"></i></a>
+                                    <li><a href="{{ subsubcategory.get_absolute_url }}">{{ subsubcategory.name }}<i
+                                            class="fas fa-chevron-down"></i></a>
                                       {% if subsubcategory.children %}
                                         <ul>
                                           {% for 3xsubcategory in subsubcategory.children.all %}
-                                            <li><a href="{{ 3xsubcategory.get_absolute_url }}">{{ 3xsubcategory.name }}<i
-                                                    class="fas fa-chevron-down"></i></a>
+                                            <li>
+                                              <a href="{{ 3xsubcategory.get_absolute_url }}">{{ 3xsubcategory.name }}<i
+                                                      class="fas fa-chevron-down"></i></a>
                                             </li>
                                           {% endfor %}
                                         </ul>
@@ -153,18 +157,6 @@
                   {% endfor %}
                 </ul>
               </div>
-
-              <!-- Menu Trigger -->
-
-              <div class="menu_trigger_container ml-auto">
-                <div class="menu_trigger d-flex flex-row align-items-center justify-content-end">
-                  <div class="menu_burger">
-                    <div class="menu_trigger_text">menu</div>
-                    <div class="cat_burger menu_burger_inner"><span></span><span></span><span></span></div>
-                  </div>
-                </div>
-              </div>
-
             </div>
           </div>
         </div>

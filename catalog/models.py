@@ -1,9 +1,9 @@
 import random
 import string
+from slugify import slugify
 
 from django.db import models
 from django.urls import reverse
-from django.utils.text import slugify
 
 
 class Category(models.Model):
@@ -30,13 +30,13 @@ class Category(models.Model):
     def _rand_slug():
         return ''.join(random.choice(string.ascii_uppercase + string.digits) for _ in range(3))
 
-    # def save(self, *args, **kwargs):
-    #     if not self.slug:
-    #         self.slug = slugify(self._rand_slug() + '-pickBetter' + self.name)
-    #     super(Category, self).save(*args, **kwargs)
+    def save(self, *args, **kwargs):
+        if not self.slug:
+            self.slug = slugify(self.name)
+        super(Category, self).save(*args, **kwargs)
 
     def get_absolute_url(self):
-        return reverse('shop:products', args=[self.slug])
+        return reverse('catalog:products', args=[self.slug])
 
 
 class Product(models.Model):
@@ -58,8 +58,13 @@ class Product(models.Model):
     def __str__(self):
         return self.title
 
+    def save(self, *args, **kwargs):
+        if not self.slug:
+            self.slug = slugify(self.title)
+        super(Product, self).save(*args, **kwargs)
+
     def get_absolute_url(self):
-        return reverse("shop:product_detail", args=[str(self.slug)])
+        return reverse("catalog:product_detail", args=[str(self.slug)])
 
 
 class ProductManager(models.Manager):

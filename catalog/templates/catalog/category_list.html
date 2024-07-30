@@ -1,0 +1,28 @@
+{% extends 'base.html' %}
+{% block content %}
+  <section style="background-color: #eee;">
+    <div class="container py-5">
+      <h3 class="mb-4" style="font-weight: bold;">Каталог товаров</h3>
+      <div class="row text-center ">
+        {% for category in categories %}
+          <div class="col-lg-4 col-md-6 mb-4">
+            <div class="card">
+              <div class="bg-image hover-zoom ripple ripple-surface ripple-surface-light"
+                   data-mdb-ripple-color="light">
+                <a href="{{ category.get_absolute_url }}">
+                <img src="{{ category.image.url }}"
+                     class="w-40"/>
+                  </a>
+              </div>
+              <div class="card-body">
+                <a href="" class="text-reset">
+                  <h6 class="card-title mb-3">{{ category.name }}</h6>
+                </a>
+              </div>
+            </div>
+          </div>
+        {% endfor %}
+      </div>
+    </div>
+  </section>
+{% endblock %}

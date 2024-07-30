@@ -14,11 +14,11 @@ class TestRoutes(TestCase):
         cls.test_data = create_test_data()
 
     def test_category_list_page(self):
-        url = reverse('shop:category_list')
+        url = reverse('catalog:category_list')
         response = self.client.get(url)
         self.assertEqual(response.status_code, HTTPStatus.OK)
 
     def test_get_product_list_by_slug(self):
-        url = reverse('shop:products', args=[self.test_data['categories']['category_1'].slug])
+        url = reverse('catalog:products', args=[self.test_data['categories']['category_1'].slug])
         response = self.client.get(url)
         self.assertEqual(response.status_code, HTTPStatus.OK)

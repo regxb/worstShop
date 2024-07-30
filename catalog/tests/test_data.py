@@ -1,5 +1,5 @@
 from django.core.files.uploadedfile import SimpleUploadedFile
-from shop.models import Category, Product
+from catalog.models import Category, Product
 
 
 def create_test_data():

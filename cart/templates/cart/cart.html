@@ -1,0 +1,188 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load custom_filters %}
+
+
+{% block content %}
+  {% if cart %}
+    <section class="h-100 h-custom" style="background-color: #eee;">
+    <div class="container py-5 h-100">
+      <div class="row d-flex justify-content-center align-items-center h-100">
+        <div class="col-12">
+          <div class="card card-registration card-registration-2" style="border-radius: 15px;">
+            <div class="card-body p-0">
+              <div class="row g-0">
+                <div class="col-lg-8">
+                  <div class="p-5">
+                    <div class="d-flex justify-content-between align-items-center mb-5">
+                      <h1 class="fw-bold mb-0" style="font-family: PT Sans, Helvetica, Arial, sans-serif;">Корзина</h1>
+                      <h6 class="mb-0 text-muted">{{ cart|length }} {{ cart|length|pluralize }}</h6>
+                    </div>
+                    <hr class="my-4">
+
+
+
+                    {% for item in cart %}
+                      <div class="row mb-4 d-flex justify-content-between align-items-center">
+                        <div class="col-2">
+                          <img
+                                  src="{{ item.product.image.url }}"
+                                  class="img-fluid rounded-3" alt="Cotton T-shirt">
+                        </div>
+                        <div class="col-3">
+                          <h6 class="mb-0" style="font-size: 14px;">{{ item.product.title }}</h6>
+                        </div>
+                        <div class="col-3 d-flex align-items-center">
+                          <div class="mr-2">
+                            <a id="update-button" class="delete-button" data-index="{{ item.product.id }}" style="cursor: pointer;">
+                              <i class="fas fa-minus"></i>
+                            </a>
+                          </div>
+                          <input id="form1" min="0" name="quantity" value="{{ item.quantity }}" type="text"
+                                 class=" text-center form-control form-control-sm mx-2" style="width: 48px;"/>
+                          <div class="ml-2">
+                            <a id="update-button" class="add-button" data-index="{{ item.product.id }}" style="cursor: pointer;">
+                              <i class="fas fa-plus"></i>
+                            </a>
+                          </div>
+                        </div>
+
+                        <div class="col-3">
+                          <h6 class="mb-0" style="font-size: 14px;">{{ item.total_price| format_number }}&nbsp; ₽</h6>
+                        </div>
+                        <div class="col-md-1 col-lg-1 col-xl-1 text-end">
+                          <a class="text-muted remove-button" data-index="{{ item.product.id }}" style="cursor: pointer;">
+                            <i class="fas fa-times"></i>
+                          </a>
+                        </div>
+                      </div>
+                    {% endfor %}
+
+
+
+
+                    <hr class="my-4">
+                  </div>
+                </div>
+                <div class="col-lg-4 bg-body-tertiary">
+                  <div class="p-5">
+                    <h3 class="fw-bold mb-5 mt-2 pt-1">Итого:</h3>
+                    <hr class="my-4">
+                    <div class="d-flex justify-content-between mb-4">
+                      <h6>
+                        <span id="cart_total_quantity">{{ cart|length }}</span>
+                        <span>{{ cart|length|pluralize }}</span>
+                      </h6>
+                      <h6 id="cart_total_price" style="font-size: 18px">{{ cart.get_total_price| format_number }}&nbsp; ₽</h6>
+                    </div>
+
+
+                    <h6 class="mb-3">Промокод</h6>
+
+                    <div class="mb-3">
+                      <div data-mdb-input-init class="form-outline">
+                        <input type="text" id="form3Examplea2" class="form-control" placeholder="Введите промокод..."/>
+                        <label class="form-label" for="form3Examplea2"></label>
+                      </div>
+                    </div>
+                    <button type="button" data-mdb-button-init data-mdb-ripple-init
+                            class="btn btn-primary btn-block btn-lg"
+                            data-mdb-ripple-color="dark">Перейти к оформлению
+                    </button>
+
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  {% else %}
+    <section class="h-100 h-custom" style="background-color: #eee;">
+    <div class="container py-5 h-100">
+      <div class="row d-flex justify-content-center align-items-center h-100">
+        <div class="col-12">
+          <div class="card card-registration card-registration-2" style="border-radius: 15px;">
+            <div class="text-center card-body p-0" style="font-family: PTRootUIWeb, sans-serif;">
+              <h3 class="mt-5 mb-2">В корзине нет товаров</h3>
+              <h6>Найдите то, что вам нужно в каталоге или при помощи поиска</h6>
+              <a href="{% url 'catalog:category_list' %}" class="btn btn-primary mb-5 mt-2 rounded-pill text-white">Вернуться
+                к покупкам</a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  {% endif %}
+
+<script>
+
+    function formatNumber(value) {
+        return value.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ' ');
+    }
+
+    $(document).on('click', '.delete-button', function (e) {
+        e.preventDefault();
+
+        var product_id = $(this).data('index');
+        console.log(product_id);
+        $.ajax({
+            type: 'POST',
+            url: '{% url "cart:cart_delete" %}',
+            data: {
+                product_id: product_id,
+                csrfmiddlewaretoken: '{{ csrf_token }}',
+                action: 'post'
+            },
+            success: function (response) {
+                $('#cart-count').text(response.quantity);
+                let formattedPrice = formatNumber(response.price);
+                $('#cart_price').text(formattedPrice + ' ' + '₽');
+                location.reload()
+            },
+        });
+    });
+    
+      $(document).on('click', '.add-button', function (e) {
+          e.preventDefault();
+          
+          var product_id = $(this).data('index');
+          console.log(product_id);
+          $.ajax({
+              type: 'POST',
+              url: '{% url "cart:cart_add" %}',
+              data: {
+                  product_id: product_id,
+                  csrfmiddlewaretoken: '{{ csrf_token }}',
+                  action: 'post'
+              },
+              success: function () {
+                location.reload()
+              },
+          });
+      });
+    
+          $(document).on('click', '.remove-button', function (e) {
+          e.preventDefault();
+          
+          var product_id = $(this).data('index');
+          console.log(product_id);
+          $.ajax({
+              type: 'POST',
+              url: '{% url "cart:cart_remove" %}',
+              data: {
+                  product_id: product_id,
+                  csrfmiddlewaretoken: '{{ csrf_token }}',
+                  action: 'post'
+              },
+              success: function () {
+                location.reload()
+              },
+          });
+      });
+
+</script>
+
+</section>
+{% endblock %}

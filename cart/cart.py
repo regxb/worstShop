@@ -1,4 +1,6 @@
-from catalog.models import Product
+from decimal import Decimal
+
+from catalog.models import Product, ProductProxy
 
 
 class Cart:
@@ -9,30 +11,47 @@ class Cart:
         if 'session_key' not in self.session:
             self.session['session_key'] = self.cart
 
+    def __len__(self):
+        return sum(item['quantity'] for item in self.cart.values())
+
+    def __iter__(self):
+        product_ids = self.cart.keys()
+        products = ProductProxy.objects.filter(id__in=product_ids)
+        cart = self.cart.copy()
+
+        for product in products:
+            cart[str(product.id)]['product'] = product
+
+        for item in cart.values():
+            item['product_price'] = Decimal(item['product_price'])
+            item['total_price'] = item['product_price'] * item['quantity']
+            yield item
+
     def add(self, product):
         product_id = str(product.id)
         product = Product.objects.get(id=product_id)
         if product_id not in self.cart:
             self.cart[product_id] = {
-                'product_title': product.title,
                 'product_price': int(product.price),
-                'product_image': product.image.url,
                 'quantity': 1}
         else:
-            qty = int(self.cart[product_id]['quantity']) + 1
-            self.cart[product_id] = {
-                'product_title': product.title,
-                'product_price': int(product.price) * qty,
-                'product_image': product.image.url,
-                'quantity': qty}
+            self.cart[product_id]['quantity'] += 1
         self.session.modified = True
 
-    def get_products_data(self):
-        return self.cart.values()
+    def delete(self, product):
+        product_id = str(product.id)
+        if product_id in self.cart:
+            if self.cart[product_id]['quantity'] == 1:
+                del self.cart[product_id]
+            else:
+                self.cart[product_id]['quantity'] -= 1
+            self.session.modified = True
+
+    def remove(self, product):
+        product_id = str(product.id)
+        if product_id in self.cart:
+            del self.cart[product_id]
+            self.session.modified = True
 
     def get_total_price(self):
-        total_sum = sum(item['product_price'] for item in self.cart.values())
-        return '{:,}'.format(total_sum).replace(',', ' ')
-
-    def get_total_quantity(self):
-        return sum(item['quantity'] for item in self.cart.values())
+        return sum((Decimal(item['product_price']) * item['quantity']) for item in self.cart.values())

@@ -1,5 +1,6 @@
 {% extends 'base.html' %}
 {% load static %}
+{% load custom_filters %}
 {% block content %}
   <section style="background-color: #eee;">
     <div class="container py-5">
@@ -36,13 +37,20 @@
                   </div>
                   <div class="col-md-6 col-lg-3 col-xl-3 border-sm-start-none border-start">
                     <div class="d-flex flex-row align-items-center mb-1">
-                      <h4 class="mb-1" style="margin-right: 8px">{{ product.price }}₽ </h4>
-                      <span class="text-danger"><s> {{ product.price }}₽</s></span>
+                      <h4 class="mb-1" style="margin-right: 8px">{{ product.price| format_number }}&nbsp;₽ </h4>
+                      <span class="text-danger"><s> {{ product.price| format_number }}&nbsp;₽</s></span>
                     </div>
                     <div class="d-flex flex-column mt-4">
-                      <button id="add-button-{{ product.id }}" value="{{ product.id }}" class="btn btn-primary btn-sm" type="button">
-                        Добавить в корзину
-                      </button>
+                      {% if product.title in cart_products_title %}
+                        <a class="btn btn-success btn-sm text-white" href="{% url 'cart:cart_view' %}">
+                          Товар в корзине
+                        </a>
+                      {% else %}
+                        <button id="add-button" value="{{ product.id }}" class="btn btn-primary btn-sm"
+                                type="button">
+                          Добавить в корзину
+                        </button>
+                      {% endif %}
                       <button class="btn btn-outline-primary btn-sm mt-2"
                               type="button">
                         В избранное
@@ -57,22 +65,33 @@
       {% endfor %}
     </div>
   </section>
-
   <script>
-$(document).on('click', '[id^=add-button-]', function(e){
-    e.preventDefault();
-
-    let productId = $(this).attr('id').split('-').pop();
-    $.ajax({
-        type: 'POST',
-        url: '{% url "cart:cart_add" %}',
-        data: {
-            product_id: productId,
-            csrfmiddlewaretoken: '{{ csrf_token }}',
-            action: 'post'
-        },
-    });
-});
+      function formatNumber(value) {
+          return value.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ' ');
+      }
+      $(document).on('click', '#add-button', function (e) {
+          e.preventDefault();
+          var product_id = $(this).val();
+          $.ajax({
+              type: 'POST',
+              url: '{% url "cart:cart_add" %}',
+              data: {
+                  product_id: product_id,
+                  csrfmiddlewaretoken: '{{ csrf_token }}',
+                  action: 'post'
+              },
+              success: function (response) {
+                  let newLink = $('<a>', {
+                      class: 'btn btn-success btn-sm text-white',
+                      href: '{% url "cart:cart_view" %}',
+                      text: 'Товар в корзине'
+                  });
+                  $('#add-button').replaceWith(newLink);
+                  $('#cart-count').text(response.quantity);
+                  let formattedPrice = formatNumber(response.price);
+                  $('#cart_price').text(formattedPrice + ' ' + '₽');
+              },
+          });
+      });
   </script>
-  
 {% endblock %}

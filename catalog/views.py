@@ -1,13 +1,22 @@
 from django.shortcuts import render, get_object_or_404
 
+from cart.cart import Cart
 from catalog.models import Product, ProductProxy, Category
 
 
 # Create your views here.
 def products_view(request, slug):
+    cart = Cart(request)
     category = get_object_or_404(Category, slug=slug)
     products = ProductProxy.objects.filter(category=category)
-    return render(request, 'catalog/products.html', {"products": products})
+    cart_products_title = [item['product'].title for item in cart]
+    products_title_list = [str(item) for item in products]
+    context = {
+        "products": products,
+        'products_title_list': products_title_list,
+        'cart_products_title': cart_products_title,
+    }
+    return render(request, 'catalog/products.html', context)
 
 
 def product_detail_view(request, slug):

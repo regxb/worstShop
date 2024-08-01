@@ -3,6 +3,7 @@ from django.shortcuts import render, get_object_or_404
 
 from .cart import Cart
 from catalog.models import ProductProxy
+from .utils import get_cart_data
 
 
 def cart_view(request):
@@ -10,36 +11,17 @@ def cart_view(request):
 
 
 def cart_add(request):
-    cart = Cart(request)
-    if request.method == 'POST':
-        product_id = request.POST.get('product_id')
-        product = get_object_or_404(ProductProxy, id=product_id)
-        cart.add(product=product)
-        new_quantity = cart.__len__()
-        new_price = cart.get_total_price()
-        response = JsonResponse({'quantity': new_quantity, 'price': new_price})
-        return response
+    return get_cart_data(request, action='add')
 
 
 def cart_delete(request):
-    cart = Cart(request)
-    if request.method == 'POST':
-        product_id = request.POST.get('product_id')
-        product = get_object_or_404(ProductProxy, id=product_id)
-        cart.delete(product)
-        new_quantity = cart.__len__()
-        new_price = cart.get_total_price()
-        response = JsonResponse({'quantity': new_quantity, 'price': new_price})
-        return response
+    return get_cart_data(request, action='delete')
 
 
 def cart_remove(request):
-    cart = Cart(request)
     if request.method == 'POST':
         product_id = request.POST.get('product_id')
         product = get_object_or_404(ProductProxy, id=product_id)
+        cart = Cart(request)
         cart.remove(product=product)
-        new_quantity = cart.__len__()
-        new_price = cart.get_total_price()
-        response = JsonResponse({'quantity': new_quantity, 'price': new_price})
-        return response
+        return JsonResponse({})

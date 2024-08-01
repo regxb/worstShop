@@ -15,8 +15,8 @@ def format_number(value):
 @register.filter
 def pluralize(value):
     if value % 10 == 1 and value % 100 != 11:
-        return "товар"
+        return f"{value} товар"
     elif value % 10 in [2, 3, 4] and (value % 100 < 10 or value % 100 >= 20):
-        return "товара"
+        return f"{value} товара"
     else:
-        return "товаров"
+        return f"{value} товаров"

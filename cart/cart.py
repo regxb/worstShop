@@ -55,3 +55,11 @@ class Cart:
 
     def get_total_price(self):
         return sum((Decimal(item['product_price']) * item['quantity']) for item in self.cart.values())
+
+    def get_product_quantity(self, product_id):
+        item = self.cart.get(product_id, {})
+        return item.get('quantity', 0)
+
+    def get_product_price(self, product_id):
+        item = self.cart.get(product_id, {})
+        return Decimal(item.get('product_price', 0)) * item.get('quantity', 0)

@@ -46,8 +46,7 @@
                           Товар в корзине
                         </a>
                       {% else %}
-                        <button id="add-button" value="{{ product.id }}" class="btn btn-primary btn-sm"
-                                type="button">
+                        <button class="add-button btn btn-primary btn-sm" value="{{ product.id }}" type="button">
                           Добавить в корзину
                         </button>
                       {% endif %}
@@ -69,9 +68,12 @@
       function formatNumber(value) {
           return value.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ' ');
       }
-      $(document).on('click', '#add-button', function (e) {
+
+      $(document).on('click', '.add-button', function (e) {
           e.preventDefault();
           var product_id = $(this).val();
+          var $button = $(this);
+
           $.ajax({
               type: 'POST',
               url: '{% url "cart:cart_add" %}',
@@ -81,13 +83,14 @@
                   action: 'post'
               },
               success: function (response) {
+                  console.log(product_id);
                   let newLink = $('<a>', {
                       class: 'btn btn-success btn-sm text-white',
                       href: '{% url "cart:cart_view" %}',
                       text: 'Товар в корзине'
                   });
-                  $('#add-button').replaceWith(newLink);
-                  $('#cart-count').text(response.quantity);
+                  $button.replaceWith(newLink);
+                  $('#cart-count').text(response.new_quantity_digit);
                   let formattedPrice = formatNumber(response.price);
                   $('#cart_price').text(formattedPrice + ' ' + '₽');
               },

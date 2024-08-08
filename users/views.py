@@ -25,7 +25,7 @@ class UserRegistrationView(generic.CreateView):
                          'содержащее ссылку для подтверждения правильности e-mail адреса. <br> '
                          'Пожалуйста, перейдите по ссылке для завершения регистрации.'
                          )
-        return super().form_valid(form)
+        return super(UserRegistrationView, self).form_valid(form)
 
 
 class UserLoginView(LoginView):
@@ -43,7 +43,7 @@ class EmailVerificationView(generic.RedirectView):
         email_verification = EmailVerification.objects.filter(code=code).select_related('user')
         user = email_verification.first().user
         if email_verification.exists() and email_verification.first().is_expired:
-            user.is_verification_email = True
+            user.is_active = True
             user.save()
             messages.success(self.request, 'Вы успешно зарегистрировались!')
             return super(EmailVerificationView, self).get(request, *args, **kwargs)

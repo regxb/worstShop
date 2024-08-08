@@ -1,7 +1,7 @@
-from django.shortcuts import render, get_object_or_404
+from django.shortcuts import get_object_or_404, render
 
 from cart.cart import Cart
-from catalog.models import Product, ProductProxy, Category
+from catalog.models import Category, Product, ProductProxy
 
 
 # Create your views here.

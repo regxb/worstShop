@@ -1,8 +1,9 @@
 from django.http import JsonResponse
-from django.shortcuts import render, get_object_or_404
+from django.shortcuts import get_object_or_404, render
+
+from catalog.models import ProductProxy
 
 from .cart import Cart
-from catalog.models import ProductProxy
 from .utils import get_cart_data
 
 

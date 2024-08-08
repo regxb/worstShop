@@ -2,7 +2,7 @@ import json
 from decimal import Decimal
 
 from django.contrib.sessions.middleware import SessionMiddleware
-from django.test import TestCase, RequestFactory
+from django.test import RequestFactory, TestCase
 from django.urls import reverse
 
 from cart.views import cart_add, cart_delete, cart_remove

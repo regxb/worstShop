@@ -1,11 +1,11 @@
+from django.contrib import messages
 from django.contrib.auth import get_user_model
 from django.contrib.auth.views import LoginView
 from django.http import HttpResponseRedirect
-from django.urls import reverse_lazy, reverse
+from django.urls import reverse, reverse_lazy
 from django.views import generic
-from django.contrib import messages
 
-from users.forms import UserCreateForm, UserAuthenticationForm
+from users.forms import UserAuthenticationForm, UserCreateForm
 from users.models import EmailVerification
 
 User = get_user_model()

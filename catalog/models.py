@@ -11,7 +11,7 @@ class Category(models.Model):
     parent = models.ForeignKey('self', on_delete=models.CASCADE, related_name='children', blank=True, null=True)
     slug = models.SlugField('URL', max_length=250, unique=True, null=False, editable=True)
     created_at = models.DateTimeField('Время создания', auto_now_add=True)
-    image = models.ImageField('Изображение', upload_to='products/products/%Y/%m/%d', null=True, blank=True)
+    image = models.ImageField('Изображение', upload_to='category', null=True, blank=True)
 
     class Meta:
         verbose_name = 'Категория'
@@ -46,7 +46,7 @@ class Product(models.Model):
     description = models.TextField('Описание', blank=True)
     slug = models.SlugField('URL', max_length=250)
     price = models.DecimalField('Цена', max_digits=7, decimal_places=0, default=99)
-    image = models.ImageField('Изображение', upload_to='products/products/%Y/%m/%d')
+    image = models.ImageField('Изображение', upload_to='products')
     available = models.BooleanField('Наличие', default=True)
     created_at = models.DateTimeField('Дата создания', auto_now_add=True)
     updated_at = models.DateTimeField('Дата изменения', auto_now=True)

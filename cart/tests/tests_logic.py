@@ -5,9 +5,8 @@ from django.contrib.sessions.middleware import SessionMiddleware
 from django.test import TestCase, RequestFactory
 from django.urls import reverse
 
-from cart.cart import Cart
 from cart.views import cart_add, cart_delete, cart_remove
-from catalog.models import Category, Product
+from catalog.models import Product
 
 
 class TestLogic(TestCase):

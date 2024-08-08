@@ -1,9 +1,14 @@
 from django.contrib.auth import get_user_model
 from django.contrib.auth.views import LoginView
-from django.urls import reverse_lazy
+from django.contrib.messages.views import SuccessMessageMixin
+from django.http import HttpResponseRedirect
+from django.urls import reverse_lazy, reverse
 from django.views import generic
+from django.contrib import messages
+from django.conf import settings
 
 from users.forms import UserCreateForm, UserAuthenticationForm
+from users.models import EmailVerification
 
 User = get_user_model()
 
@@ -12,7 +17,15 @@ class UserRegistrationView(generic.CreateView):
     model = User
     form_class = UserCreateForm
     template_name = 'users/registration.html'
-    success_url = reverse_lazy('catalog:category_list')
+    success_url = reverse_lazy('users:login')
+
+    def form_valid(self, form):
+        messages.warning(self.request,
+                         'На Ваш почтовый ящик отправлено сообщение, '
+                         'содержащее ссылку для подтверждения правильности e-mail адреса. <br> '
+                         'Пожалуйста, перейдите по ссылке для завершения регистрации.'
+                         )
+        return super().form_valid(form)
 
 
 class UserLoginView(LoginView):
@@ -20,3 +33,18 @@ class UserLoginView(LoginView):
     model = User
     template_name = 'users/login.html'
 
+
+class EmailVerificationView(generic.RedirectView):
+    url = reverse_lazy('users:login')
+    success_message = 'Вы успешно зарегистрировались!'
+
+    def get(self, request, *args, **kwargs):
+        code = kwargs.get('code')
+        email_verification = EmailVerification.objects.filter(code=code).select_related('user')
+        user = email_verification.first().user
+        if email_verification.exists() and email_verification.first().is_expired:
+            user.is_verification_email = True
+            user.save()
+            messages.success(self.request, 'Вы успешно зарегистрировались!')
+            return super(EmailVerificationView, self).get(request, *args, **kwargs)
+        return HttpResponseRedirect(reverse('users:login'))

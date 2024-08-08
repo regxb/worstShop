@@ -6,7 +6,7 @@ from django.utils.timezone import now
 
 
 class User(AbstractUser):
-    is_verification_email = models.BooleanField(default=False)
+    ...
 
 
 class EmailVerification(models.Model):
@@ -16,11 +16,11 @@ class EmailVerification(models.Model):
     expiration = models.DateTimeField()
 
     def send_verification_email(self):
-        link = f'{settings.DOMAIN_NAME}user/verify/{self.code}'
+        link = f'Для завершения регистрации, перейдите по ссылке: {settings.DOMAIN_NAME}user/verify/{self.code}'
         send_mail(
-            subject="Subject here",
+            subject="Подтверждение регистрации",
             message=link,
-            from_email="from@example.com",
+            from_email=settings.EMAIL_HOST_USER,
             recipient_list=[self.user.email],
         )
 

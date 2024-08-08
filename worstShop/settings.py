@@ -138,6 +138,12 @@ MEDIA_ROOT = BASE_DIR / 'media'
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-LOGIN_REDIRECT_URL = 'catalog:category_list'
+# Users
 
+AUTH_USER_MODEL = 'users.User'
+LOGIN_REDIRECT_URL = 'catalog:category_list'
 LOGOUT_REDIRECT_URL = 'catalog:category_list'
+
+DOMAIN_NAME = "http://localhost:8000/"
+
+EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'

@@ -12,6 +12,12 @@ User = get_user_model()
 
 
 class UserRegistrationView(generic.CreateView):
+
+    def dispatch(self, request, *args, **kwargs):
+        if request.user.is_authenticated:
+            return HttpResponseRedirect(reverse('catalog:category_list'))
+        return super().dispatch(request, *args, **kwargs)
+
     model = User
     form_class = UserCreateForm
     template_name = 'users/registration.html'
@@ -27,6 +33,12 @@ class UserRegistrationView(generic.CreateView):
 
 
 class UserLoginView(LoginView):
+
+    def dispatch(self, request, *args, **kwargs):
+        if request.user.is_authenticated:
+            return HttpResponseRedirect(reverse('catalog:category_list'))
+        return super().dispatch(request, *args, **kwargs)
+
     authentication_form = UserAuthenticationForm
     model = User
     template_name = 'users/login.html'

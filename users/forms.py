@@ -4,7 +4,6 @@ from django.contrib.auth.forms import AuthenticationForm, UserCreationForm
 
 from .tasks import send_email_verifications
 
-
 User = get_user_model()
 
 

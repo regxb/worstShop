@@ -15,7 +15,7 @@ class EmailVerification(models.Model):
     code = models.UUIDField(unique=True)
     expiration = models.DateTimeField()
 
-    def send_verification_email(self):
+    def send_verification_code(self):
         link = f'Для завершения регистрации, перейдите по ссылке: {settings.DOMAIN_NAME}user/verify/{self.code}'
         send_mail(
             subject="Подтверждение регистрации",

@@ -1,16 +1,29 @@
 import stripe
 from django.conf import settings
+from django.contrib.auth.mixins import LoginRequiredMixin
 from django.http import HttpResponse, HttpResponseRedirect
 from django.urls import reverse, reverse_lazy
 from django.views.decorators.csrf import csrf_exempt
+from django.views.generic import ListView
 from django.views.generic.edit import CreateView
 
 from cart.cart import Cart
 from orders.forms import OrderForm
 from orders.models import Order
-from users.models import User
+from users.models import Basket, User
 
 stripe.api_key = settings.STRIPE_SECRET_KEY
+
+
+class OrderView(LoginRequiredMixin, ListView):
+    model = Order
+    ordering = '-created_at'
+    template_name = 'orders/order_list.html'
+    login_url = reverse_lazy('users:login')
+
+    def get_queryset(self):
+        queryset = super(OrderView, self).get_queryset()
+        return queryset.filter(initiator=self.request.user)
 
 
 class OrderCreateView(CreateView):
@@ -25,7 +38,7 @@ class OrderCreateView(CreateView):
             line_items=cart.get_stripe_products_data(),
             metadata={'order_id': self.object.id},
             mode='payment',
-            success_url='{}{}'.format(settings.DOMAIN_NAME, reverse('catalog:category_list')),
+            success_url='{}{}'.format(settings.DOMAIN_NAME, reverse('orders:orders')),
             cancel_url='{}{}'.format(settings.DOMAIN_NAME, reverse('catalog:category_list')),
         )
         return HttpResponseRedirect(checkout_session.url, status=303)
@@ -35,13 +48,18 @@ class OrderCreateView(CreateView):
         if self.request.user.is_authenticated:
             user = User.objects.get(id=self.request.user.id)
             order.initiator = user
-            order.save()
+            if Basket.objects.filter(user=order.initiator).exists():
+                basket = Basket.objects.filter(user=order.initiator)
+                order.products = {
+                    'products': [item.add_data_to_json() for item in basket]
+                }
+                order.save()
         return super(OrderCreateView, self).form_valid(form)
 
 
 def fulfill_checkout(session_id):
-    order_id = Order.objects.get(id=int(session_id.metadata['order_id']))
-    order_id.update_after_success_payment()
+    order = Order.objects.get(id=int(session_id.metadata['order_id']))
+    order.update_after_success_payment()
 
 
 @csrf_exempt

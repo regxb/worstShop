@@ -1,6 +1,7 @@
 from decimal import Decimal
 
 from catalog.models import Product, ProductProxy
+from users.models import Basket
 
 
 class Cart:
@@ -27,15 +28,18 @@ class Cart:
             item['total_price'] = item['product_price'] * item['quantity']
             yield item
 
-    def add(self, product):
+    def add(self, product, quantity=None):
         product_id = str(product.id)
         product = Product.objects.get(id=product_id)
         if product_id not in self.cart:
             self.cart[product_id] = {
                 'product_price': int(product.price),
-                'quantity': 1}
+                'quantity': quantity if quantity else 1}
         else:
-            self.cart[product_id]['quantity'] += 1
+            if quantity:
+                self.cart[product_id]['quantity'] = quantity
+            else:
+                self.cart[product_id]['quantity'] += 1
         self.session.modified = True
 
     def delete(self, product):
@@ -71,3 +75,17 @@ class Cart:
             line_items.append({'price': stripe_price,
                                'quantity': value['quantity']})
         return line_items
+
+    def transfer_cart_to_basket(self, user, action):
+        for key, value in self.cart.items():
+            product = Product.objects.get(id=int(key))
+            if Basket.objects.filter(user=user, product=product).exists():
+                basket = Basket.objects.get(user=user, product=product)
+                if action == 'login':
+                    basket.quantity += value['quantity']
+                elif action == 'logout':
+                    if value['quantity'] >= 0:
+                        basket.quantity = value['quantity']
+                basket.save()
+            else:
+                Basket.objects.create(user=user, product=product, quantity=value['quantity'])

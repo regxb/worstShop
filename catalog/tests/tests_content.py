@@ -1,3 +1,4 @@
+from django.core.cache import cache
 from django.test import TestCase
 from django.urls import reverse
 
@@ -8,6 +9,7 @@ class TestContent(TestCase):
 
     @classmethod
     def setUpTestData(cls):
+        cache.clear()
         cls.test_data = create_test_data()
 
     def test_category_list_content(self):

@@ -1,12 +1,13 @@
 from django.contrib import messages
 from django.contrib.auth import get_user_model
-from django.contrib.auth.views import LoginView
+from django.contrib.auth.views import LoginView, LogoutView
 from django.http import HttpResponseRedirect
 from django.urls import reverse, reverse_lazy
 from django.views import generic
 
+from cart.cart import Cart
 from users.forms import UserAuthenticationForm, UserCreateForm
-from users.models import EmailVerification
+from users.models import Basket, EmailVerification
 
 User = get_user_model()
 
@@ -42,6 +43,29 @@ class UserLoginView(LoginView):
     authentication_form = UserAuthenticationForm
     model = User
     template_name = 'users/login.html'
+
+    def form_valid(self, form):
+        user = User.objects.get(username=form.cleaned_data['username'])
+        cart = Cart(self.request)
+        if cart:
+            cart.transfer_cart_to_basket(user, action='login')
+        for basket in Basket.objects.filter(user=user):
+            cart.add(basket.product, quantity=basket.quantity)
+        return super(UserLoginView, self).form_valid(form)
+
+
+class UserLogoutView(LogoutView):
+    template_name = reverse_lazy('users:login')
+
+    def post(self, request, *args, **kwargs):
+        user = User.objects.get(id=request.user.id)
+        cart = Cart(self.request)
+        if cart:
+            cart.transfer_cart_to_basket(user, action='logout')
+        for basket in Basket.objects.filter(user=user):
+            if str(basket.product.id) not in cart.cart.keys():
+                basket.delete()
+        return super(UserLogoutView, self).post(request, *args, **kwargs)
 
 
 class EmailVerificationView(generic.RedirectView):

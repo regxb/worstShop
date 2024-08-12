@@ -63,3 +63,11 @@ class Cart:
     def get_product_price(self, product_id):
         item = self.cart.get(product_id, {})
         return Decimal(item.get('product_price', 0)) * item.get('quantity', 0)
+
+    def get_stripe_products_data(self):
+        line_items = []
+        for key, value in self.cart.items():
+            stripe_price = Product.objects.get(id=int(key)).stripe_price
+            line_items.append({'price': stripe_price,
+                               'quantity': value['quantity']})
+        return line_items

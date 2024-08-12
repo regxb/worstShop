@@ -21,7 +21,7 @@ class Order(models.Model):
     last_name = models.CharField(max_length=64)
     email = models.EmailField(max_length=256)
     phone_number = models.CharField(max_length=15)
-    cart = models.JSONField(default=dict)
+    products = models.JSONField(default=dict)
     created_at = models.DateTimeField(auto_now_add=True)
     address = models.CharField(max_length=256)
     initiator = models.ForeignKey(User, on_delete=models.CASCADE, related_name='user_initiator', null=True)

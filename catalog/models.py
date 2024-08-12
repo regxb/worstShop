@@ -1,9 +1,13 @@
 import random
 import string
 
+import stripe
+from django.conf import settings
 from django.db import models
 from django.urls import reverse
 from slugify import slugify
+
+stripe.api_key = settings.STRIPE_SECRET_KEY
 
 
 class Category(models.Model):
@@ -26,6 +30,9 @@ class Category(models.Model):
             k = k.parent
         return ' > '.join(full_path[::-1])
 
+    def get_absolute_url(self):
+        return reverse('catalog:products', args=[self.slug])
+
     @staticmethod
     def _rand_slug():
         return ''.join(random.choice(string.ascii_uppercase + string.digits) for _ in range(3))
@@ -34,9 +41,6 @@ class Category(models.Model):
         if not self.slug:
             self.slug = slugify(self.name)
         super(Category, self).save(*args, **kwargs)
-
-    def get_absolute_url(self):
-        return reverse('catalog:products', args=[self.slug])
 
 
 class Product(models.Model):
@@ -50,6 +54,7 @@ class Product(models.Model):
     available = models.BooleanField('Наличие', default=True)
     created_at = models.DateTimeField('Дата создания', auto_now_add=True)
     updated_at = models.DateTimeField('Дата изменения', auto_now=True)
+    stripe_price = models.CharField(blank=True, null=True, max_length=128)
 
     class Meta:
         verbose_name = 'Продукт'
@@ -61,7 +66,19 @@ class Product(models.Model):
     def save(self, *args, **kwargs):
         if not self.slug:
             self.slug = slugify(self.title)
+        if not self.stripe_price:
+            stripe_price_id = self.get_stripe_product_price_id()
+            self.stripe_price = stripe_price_id
         super(Product, self).save(*args, **kwargs)
+
+    def get_stripe_product_price_id(self):
+        product = stripe.Product.create(name=self.title)
+        price = stripe.Price.create(
+            currency="rub",
+            unit_amount=round(self.price*100),
+            product=product['id'],
+        )
+        return price['id']
 
     def get_absolute_url(self):
         return reverse("catalog:product_detail", args=[str(self.slug)])
@@ -74,7 +91,6 @@ class ProductManager(models.Manager):
 
 
 class ProductProxy(Product):
-
     objects = ProductManager()
 
     class Meta:

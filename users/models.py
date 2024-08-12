@@ -4,6 +4,8 @@ from django.core.mail import send_mail
 from django.db import models
 from django.utils.timezone import now
 
+from catalog.models import Product
+
 
 class User(AbstractUser):
     ...
@@ -26,3 +28,12 @@ class EmailVerification(models.Model):
 
     def is_expired(self):
         return True if now() >= self.expiration else False
+
+
+class Basket(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='basket')
+    product = models.ForeignKey(Product, on_delete=models.CASCADE, related_name='users_basket')
+    quantity = models.PositiveIntegerField(default=0)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+

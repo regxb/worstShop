@@ -36,4 +36,14 @@ class Basket(models.Model):
     quantity = models.PositiveIntegerField(default=0)
     created_at = models.DateTimeField(auto_now_add=True)
 
+    def sum_basket(self):
+        return self.quantity * self.product.price
 
+    def add_data_to_json(self):
+        return {
+            'product': self.product.title,
+            'product_price': float(self.product.price),
+            'quantity': self.quantity,
+            'product_image': self.product.image.url,
+            'price': float(self.sum_basket())
+        }

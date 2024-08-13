@@ -1,6 +1,7 @@
 from django.db import models
 
-from users.models import User
+from cart.cart import Cart
+from users.models import Basket, User
 
 
 class Order(models.Model):
@@ -26,10 +27,32 @@ class Order(models.Model):
     address = models.CharField(max_length=256)
     initiator = models.ForeignKey(User, on_delete=models.CASCADE, related_name='user_initiator', null=True)
     status = models.SmallIntegerField(default=CREATED, choices=STATUS_CHOICES)
+    price = models.DecimalField(max_digits=22, decimal_places=0, blank=True, null=True)
 
     def __str__(self):
         return f'Заказ#{self.id} для {self.first_name} {self.last_name}'
 
+    def update_form_after_create(self, request):
+        if request.user.is_authenticated:
+            user = User.objects.get(id=request.user.id)
+            self.initiator = user
+            cart = Cart(request)
+            if cart:
+                cart.transfer_cart_to_basket(user, action='create_order')
+            basket = Basket.objects.filter(user=self.initiator)
+            self.products = {
+                'products': [item.add_data_to_json() for item in basket]
+            }
+            self.price = self.get_order_price()
+            basket.delete()
+
     def update_after_success_payment(self):
         self.status = Order.PAID
         self.save()
+
+    def get_order_price(self):
+        total_price = 0
+        for order_details in self.products.values():
+            for product in order_details:
+                total_price += product['price']
+        return round(total_price)

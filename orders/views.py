@@ -10,7 +10,6 @@ from django.views.generic.edit import CreateView
 from cart.cart import Cart
 from orders.forms import OrderForm
 from orders.models import Order
-from users.models import Basket, User
 
 stripe.api_key = settings.STRIPE_SECRET_KEY
 
@@ -41,19 +40,13 @@ class OrderCreateView(CreateView):
             success_url='{}{}'.format(settings.DOMAIN_NAME, reverse('orders:orders')),
             cancel_url='{}{}'.format(settings.DOMAIN_NAME, reverse('catalog:category_list')),
         )
+        cart.cart_wipe()
         return HttpResponseRedirect(checkout_session.url, status=303)
 
     def form_valid(self, form):
         order = form.save(commit=False)
-        if self.request.user.is_authenticated:
-            user = User.objects.get(id=self.request.user.id)
-            order.initiator = user
-            if Basket.objects.filter(user=order.initiator).exists():
-                basket = Basket.objects.filter(user=order.initiator)
-                order.products = {
-                    'products': [item.add_data_to_json() for item in basket]
-                }
-                order.save()
+        order.update_form_after_create(request=self.request)
+        order.save()
         return super(OrderCreateView, self).form_valid(form)
 
 

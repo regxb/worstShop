@@ -42,8 +42,8 @@ class Basket(models.Model):
     def add_data_to_json(self):
         return {
             'product': self.product.title,
-            'product_price': float(self.product.price),
+            'product_price': round(float(self.product.price)),
             'quantity': self.quantity,
             'product_image': self.product.image.url,
-            'price': float(self.sum_basket())
+            'price': round(float(self.sum_basket()))
         }

@@ -83,9 +83,16 @@ class Cart:
                 basket = Basket.objects.get(user=user, product=product)
                 if action == 'login':
                     basket.quantity += value['quantity']
-                elif action == 'logout':
+                elif action == 'logout' or action == 'create_order':
                     if value['quantity'] >= 0:
                         basket.quantity = value['quantity']
                 basket.save()
             else:
                 Basket.objects.create(user=user, product=product, quantity=value['quantity'])
+        for basket in Basket.objects.filter(user=user):
+            if str(basket.product.id) not in self.cart.keys():
+                basket.delete()
+
+    def cart_wipe(self):
+        self.session['session_key'] = {}
+        self.cart = self.session

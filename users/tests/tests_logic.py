@@ -6,7 +6,7 @@ from django.test import TestCase
 from django.urls import reverse
 
 from users.forms import UserCreateForm
-from users.models import User, EmailVerification
+from users.models import EmailVerification, User
 
 
 class TestRegistrationPage(TestCase):

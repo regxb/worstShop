@@ -2,6 +2,7 @@ import stripe
 from django.conf import settings
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.http import HttpResponse, HttpResponseRedirect
+from django.shortcuts import redirect
 from django.urls import reverse, reverse_lazy
 from django.views.decorators.csrf import csrf_exempt
 from django.views.generic import ListView
@@ -29,6 +30,12 @@ class OrderCreateView(CreateView):
     template_name = 'orders/order_create.html'
     form_class = OrderForm
     success_url = reverse_lazy('catalog:category_list')
+
+    def dispatch(self, request, *args, **kwargs):
+        cart = Cart(request)
+        if len(cart) == 0:
+            return redirect('orders:orders')
+        return super(OrderCreateView, self).dispatch(request, *args, **kwargs)
 
     def post(self, request, *args, **kwargs):
         super(OrderCreateView, self).post(request, *args, **kwargs)
@@ -65,10 +72,10 @@ def my_webhook_view(request):
         event = stripe.Webhook.construct_event(
             payload, sig_header, settings.STRIPE_WEBHOOK_SECRET
         )
-    except ValueError as e:
+    except ValueError:
         # Invalid payload
         return HttpResponse(status=400)
-    except stripe.error.SignatureVerificationError as e:
+    except stripe.error.SignatureVerificationError:
         # Invalid signature
         return HttpResponse(status=400)
 

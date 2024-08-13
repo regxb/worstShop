@@ -1,0 +1,45 @@
+{% extends 'base.html' %}
+{% load crispy_forms_filters %}
+
+{% block content %}
+
+
+  <div class="container">
+    <div class="row">
+      <div class="col-md-6 offset-md-3">
+        <h3 class="text-center mt-5" style="font-weight: 300">Регистрация</h3>
+        <div class="card my-5">
+          <form class="card-body cardbody-color p-lg-5" method="post" action="{% url 'users:registration' %}">
+            {% csrf_token %}
+            {{ form|crispy }}
+            <div class="text-center">
+              <button type="submit" class="btn btn-primary px-5 mb-5 mt-4 w-50">Регистрация</button>
+            </div>
+            <a href="{% url 'users:login' %}">
+              <div id="emailHelp" class="form-text text-center mb-5 text-dark">
+                <span>Уже есть аккаунт? </span>
+                <span class="fw-bold">Войти</span>
+              </div>
+            </a>
+        </div>
+        </form>
+      </div>
+
+    </div>
+  </div>
+  </div>
+
+{% endblock %}
+
+
+
+
+
+
+<script>
+    document.addEventListener("htmx:beforeSwap", function (e) {
+        if (e.detail.target.classList.contains("login-form") && !e.detail.xhr.response) {
+            location.reload()
+        }
+    })
+</script>

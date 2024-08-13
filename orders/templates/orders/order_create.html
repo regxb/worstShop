@@ -1,0 +1,93 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load custom_filters %}
+
+
+{% block content %}
+
+    <section class="h-100 h-custom" style="background-color: #eee;">
+      <div class="container py-5 h-100">
+        <div class="row d-flex justify-content-center align-items-center h-100">
+          <div class="col-12">
+            <div class="card card-registration card-registration-2" style="border-radius: 15px;">
+              <div class="card-body p-0">
+                <div class="row g-0">
+                  <div class="col-lg-8">
+                    <div class="p-5">
+                      <div class="d-flex justify-content-between align-items-center">
+                        <span style="font-family: 'Montserrat', sans-serif; font-size: 20px">Оформление заказа</span>
+                      </div>
+                      <hr class="my-4">
+                    </div>
+                    <div class="d-flex justify-content-between" style="padding-left: 40px; padding-right: 40px;">
+                      <form action="" method="post">
+                        {% csrf_token %}
+                        <div class="row g-3">
+                          <div class="col-sm-6">
+                            <label for="{{ form.first_name.id_for_label }}" class="form-label">Имя</label>
+                            {{ form.first_name }}
+                          </div>
+
+                          <div class="col-sm-6">
+                            <label for="{{ form.last_name.id_for_label }}" class="form-label">Фамилия</label>
+                            {{ form.last_name }}
+                          </div>
+                          
+                          <div class="col-12 mt-3">
+                            <label for="{{ form.email.id_for_label }}" class="form-label">Номер телефона</label>
+                            {{ form.phone_number }}
+                          </div>
+
+                          <div class="col-12 mt-3">
+                            <label for="{{ form.email.id_for_label }}" class="form-label">Адрес электронной
+                              почты</label>
+                            {{ form.email }}
+                          </div>
+
+                          <div class="col-12 mt-3">
+                            <label for="{{ form.email.address }}" class="form-label">Адрес</label>
+                            {{ form.address }}
+                          </div>
+
+                        </div>
+                        <button type="submit" data-mdb-button-init data-mdb-ripple-init
+                         class="btn btn-primary btn-block btn-lg mb-5 mt-5"
+                         data-mdb-ripple-color="dark">Перейти к оплате
+                      </button>
+                      </form>
+                    </div>
+                  </div>
+                  <div class="col-lg-4 bg-body-tertiary">
+                    <div class="p-5">
+                      <span style="font-family: 'Montserrat', sans-serif; font-size: 20px">Товары в корзине:</span>
+                      <hr class="my-4">
+                      {% for item in cart %}
+                        <div class="row-2 mb-2">
+                              <span id="total-cart-quantity-span"
+                                    style="font-family: 'Montserrat', sans-serif; font-size: 14px; font-weight: 500">{{ item.product.title }}</span>
+                        </div>
+                        <div class="row-2 d-flex justify-content-between align-items-center mb-2">
+                          <span style="font-family: 'Montserrat', sans-serif; font-size: 14px; font-weight: 500;">{{ item.quantity }} шт.</span>
+                          <span id="cart_total_price"
+                                style="font-family: 'Montserrat', sans-serif; font-size: 14px; font-weight: 500;">{{ item.total_price| format_number }}&nbsp;₽</span>
+                        </div>
+                        <hr>
+                      {% endfor %}
+                      <div class="d-flex justify-content-between mb-4">
+                        <span id="total-cart-quantity-span"
+                              style="font-family: 'Montserrat', sans-serif; font-size: 16px">{{ cart|length|pluralize }}</span>
+                        <span id="cart_total_price"
+                              style="font-family: 'Montserrat', sans-serif; font-size: 19px; font-weight: 500">{{ cart.get_total_price| format_number }}&nbsp;₽</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+
+{% endblock %}

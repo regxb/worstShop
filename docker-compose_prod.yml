@@ -13,7 +13,9 @@ services:
       - .env
 
   celery:
-    build: .
+    build:
+      context: .
+      dockerfile: Dockerfile_prod
     command: celery -A worstShop worker --loglevel=INFO
     volumes:
       - .:/worstShop

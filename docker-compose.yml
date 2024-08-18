@@ -1,0 +1,38 @@
+version: "3.5"
+services:
+
+  db:
+    image: postgres
+    volumes:
+      - ./data/db:/var/lib/postgresql/data
+    env_file:
+      - .env
+
+  redis:
+    image: redis
+    env_file:
+      - .env
+
+  celery:
+    build: .
+    command: celery -A worstShop worker --loglevel=INFO
+    volumes:
+      - .:/worstShop
+    depends_on:
+      - db
+      - redis
+    env_file:
+      - .env
+
+  web:
+    build: .
+    command: python manage.py runserver 0.0.0.0:8000
+    volumes:
+      - .:/worstshop
+    ports:
+      - "8000:8000"
+    env_file:
+      - .env
+    depends_on:
+      - db
+      - redis

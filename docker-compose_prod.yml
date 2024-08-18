@@ -1,0 +1,54 @@
+services:
+
+  db:
+    image: postgres
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    env_file:
+      - .env
+
+  redis:
+    image: redis
+    env_file:
+      - .env
+
+  celery:
+    build: .
+    command: celery -A worstShop worker --loglevel=INFO
+    volumes:
+      - .:/worstShop
+    depends_on:
+      - redis
+    env_file:
+      - .env
+
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile_prod
+    command: bash -c "python manage.py collectstatic --no-input --clear && python manage.py migrate  && gunicorn -b 0.0.0.0:8000 worstShop.wsgi:application"
+    volumes:
+      - .:/worstShop
+      - static_volume:/worstShop/static/
+      - media_volume:/worstShop/media/
+    expose:
+      - 8000
+    env_file:
+      - .env
+    depends_on:
+      - db
+
+  nginx:
+    build: ./nginx
+    ports:
+      - "${NGINX_EXTERNAL_PORT}:80"
+    depends_on:
+      - web
+    volumes:
+      - static_volume:/worstShop/static/
+      - media_volume:/worstShop/media/
+
+volumes:
+  postgres_data:
+  static_volume:
+  media_volume:

@@ -1,0 +1,9 @@
+FROM python:3.12
+ENV PYTHONDONTWRITEBYTECODE=1
+ENV PYTHONUNBUFFERED=1
+WORKDIR /worstShop
+RUN mkdir /static
+COPY requirements.txt /worstShop/
+RUN pip install -r requirements.txt
+COPY . /worstShop/
+CMD ["gunicorn","-b","0.0.0.0:8001","worstShop.wsgi:application"]

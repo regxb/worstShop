@@ -1,6 +1,7 @@
 import stripe
 from django.conf import settings
 from django.contrib.auth.mixins import LoginRequiredMixin
+from django.contrib.sessions.backends.db import SessionStore
 from django.http import HttpResponse, HttpResponseRedirect
 from django.shortcuts import redirect
 from django.urls import reverse, reverse_lazy
@@ -11,6 +12,7 @@ from django.views.generic.edit import CreateView
 from cart.cart import Cart
 from orders.forms import OrderForm
 from orders.models import Order
+from users.models import Basket
 
 stripe.api_key = settings.STRIPE_SECRET_KEY
 
@@ -32,27 +34,26 @@ class OrderCreateView(CreateView):
     success_url = reverse_lazy('catalog:category_list')
 
     def dispatch(self, request, *args, **kwargs):
-        cart = Cart(request)
+        cart = Cart(request.session)
         if len(cart) == 0:
             return redirect('orders:orders')
         return super(OrderCreateView, self).dispatch(request, *args, **kwargs)
 
     def post(self, request, *args, **kwargs):
         super(OrderCreateView, self).post(request, *args, **kwargs)
-        cart = Cart(request)
+        cart = Cart(request.session)
         checkout_session = stripe.checkout.Session.create(
             line_items=cart.get_stripe_products_data(),
-            metadata={'order_id': self.object.id},
+            metadata={'order_id': self.object.id, 'session_key': request.session.session_key},
             mode='payment',
             success_url='{}{}'.format(settings.DOMAIN_NAME, reverse('orders:orders')),
             cancel_url='{}{}'.format(settings.DOMAIN_NAME, reverse('catalog:category_list')),
         )
-        cart.cart_wipe()
         return HttpResponseRedirect(checkout_session.url, status=303)
 
     def form_valid(self, form):
         order = form.save(commit=False)
-        order.update_form_after_create(request=self.request)
+        order.update_order_after_create(request=self.request)
         order.save()
         return super(OrderCreateView, self).form_valid(form)
 
@@ -60,6 +61,14 @@ class OrderCreateView(CreateView):
 def fulfill_checkout(session_id):
     order = Order.objects.get(id=int(session_id.metadata['order_id']))
     order.update_after_success_payment()
+    if order.initiator:
+        for basket in Basket.objects.filter(user=order.initiator):
+            basket.delete()
+    session_key = session_id.metadata.get('session_key')
+    session = SessionStore(session_key=session_key)
+    cart = Cart(session)
+    cart.cart_wipe()
+    session.save()
 
 
 @csrf_exempt

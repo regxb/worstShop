@@ -96,4 +96,3 @@ class Cart:
 
     def cart_wipe(self):
         self.session['session_key'] = {}
-        self.cart = self.session

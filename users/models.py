@@ -39,7 +39,7 @@ class Basket(models.Model):
     def sum_basket(self):
         return self.quantity * self.product.price
 
-    def add_data_to_json(self):
+    def add_product_detail_to_json(self):
         return {
             'product': self.product.title,
             'product_price': round(float(self.product.price)),

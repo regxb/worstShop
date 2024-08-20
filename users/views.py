@@ -46,7 +46,7 @@ class UserLoginView(LoginView):
 
     def form_valid(self, form):
         user = User.objects.get(username=form.cleaned_data['username'])
-        cart = Cart(self.request)
+        cart = Cart(self.request.session)
         if cart:
             cart.transfer_cart_to_basket(user, action='login')
         for basket in Basket.objects.filter(user=user):
@@ -59,7 +59,7 @@ class UserLogoutView(LogoutView):
 
     def post(self, request, *args, **kwargs):
         user = User.objects.get(id=request.user.id)
-        cart = Cart(self.request)
+        cart = Cart(self.request.session)
         if cart:
             cart.transfer_cart_to_basket(user, action='logout')
         for basket in Basket.objects.filter(user=user):

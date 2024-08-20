@@ -1,6 +1,7 @@
 from django.db import models
 
 from cart.cart import Cart
+from catalog.models import Product
 from users.models import Basket, User
 
 
@@ -32,19 +33,31 @@ class Order(models.Model):
     def __str__(self):
         return f'Заказ#{self.id} для {self.first_name} {self.last_name}'
 
-    def update_form_after_create(self, request):
+    def update_order_after_create(self, request):
+        cart = Cart(request.session)
         if request.user.is_authenticated:
             user = User.objects.get(id=request.user.id)
             self.initiator = user
-            cart = Cart(request)
             if cart:
                 cart.transfer_cart_to_basket(user, action='create_order')
             basket = Basket.objects.filter(user=self.initiator)
             self.products = {
-                'products': [item.add_data_to_json() for item in basket]
+                'products': [item.add_product_detail_to_json() for item in basket]
             }
-            self.price = self.get_order_price()
-            basket.delete()
+        else:
+            products_data_list = []
+            for product_id, product_data in cart.cart.items():
+                product = Product.objects.get(id=product_id)
+                products_data_list.append({
+                    'product': product.title,
+                    'product_price': round(float(product_data['product_price'])),
+                    'quantity': cart.get_product_quantity(product_id),
+                    'product_image': product.image.url,
+                    'price': round(float(cart.get_product_price(product_id)))
+                })
+            self.products['products'] = products_data_list
+
+        self.price = self.get_order_price()
 
     def update_after_success_payment(self):
         self.status = Order.PAID

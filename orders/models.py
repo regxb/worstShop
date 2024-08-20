@@ -29,6 +29,7 @@ class Order(models.Model):
     initiator = models.ForeignKey(User, on_delete=models.CASCADE, related_name='user_initiator', null=True)
     status = models.SmallIntegerField(default=CREATED, choices=STATUS_CHOICES)
     price = models.DecimalField(max_digits=22, decimal_places=0, blank=True, null=True)
+    success_token = models.CharField(max_length=36, blank=True, null=True, unique=True)
 
     def __str__(self):
         return f'Заказ#{self.id} для {self.first_name} {self.last_name}'
@@ -59,8 +60,9 @@ class Order(models.Model):
 
         self.price = self.get_order_price()
 
-    def update_after_success_payment(self):
+    def update_after_success_payment(self, session_id):
         self.status = Order.PAID
+        self.success_token = session_id.metadata['success_token']
         self.save()
 
     def get_order_price(self):

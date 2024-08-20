@@ -47,3 +47,8 @@ class Basket(models.Model):
             'product_image': self.product.image.url,
             'price': round(float(self.sum_basket()))
         }
+
+
+class Wishlist(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='wishlist')
+    product = models.ForeignKey(Product, on_delete=models.CASCADE)

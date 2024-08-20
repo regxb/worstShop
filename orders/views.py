@@ -18,6 +18,7 @@ stripe.api_key = settings.STRIPE_SECRET_KEY
 
 
 class OrderView(LoginRequiredMixin, ListView):
+    paginate_by = 10
     model = Order
     ordering = '-created_at'
     template_name = 'orders/order_list.html'

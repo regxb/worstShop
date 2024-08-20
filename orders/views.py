@@ -1,12 +1,14 @@
+import uuid
+
 import stripe
 from django.conf import settings
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.sessions.backends.db import SessionStore
 from django.http import HttpResponse, HttpResponseRedirect
-from django.shortcuts import redirect
+from django.shortcuts import redirect, render
 from django.urls import reverse, reverse_lazy
 from django.views.decorators.csrf import csrf_exempt
-from django.views.generic import ListView
+from django.views.generic import ListView, TemplateView
 from django.views.generic.edit import CreateView
 
 from cart.cart import Cart
@@ -15,6 +17,16 @@ from orders.models import Order
 from users.models import Basket
 
 stripe.api_key = settings.STRIPE_SECRET_KEY
+
+
+class OrderSuccessCreateView(TemplateView):
+    template_name = 'orders/success_order.html'
+
+    def get(self, request, *args, **kwargs):
+        if request.GET.get('token') and Order.objects.filter(success_token=request.GET.get('token')).exists():
+            return render(request, 'orders/success_order.html')
+        else:
+            return redirect('catalog:category_list')
 
 
 class OrderView(LoginRequiredMixin, ListView):
@@ -43,11 +55,15 @@ class OrderCreateView(CreateView):
     def post(self, request, *args, **kwargs):
         super(OrderCreateView, self).post(request, *args, **kwargs)
         cart = Cart(request.session)
+        success_token = str(uuid.uuid4())
         checkout_session = stripe.checkout.Session.create(
             line_items=cart.get_stripe_products_data(),
-            metadata={'order_id': self.object.id, 'session_key': request.session.session_key},
+            metadata={'order_id': self.object.id,
+                      'session_key': request.session.session_key,
+                      'success_token': success_token,
+                      },
             mode='payment',
-            success_url='{}{}'.format(settings.DOMAIN_NAME, reverse('orders:orders')),
+            success_url='{}{}?token={}'.format(settings.DOMAIN_NAME, reverse('orders:created'), success_token),
             cancel_url='{}{}'.format(settings.DOMAIN_NAME, reverse('catalog:category_list')),
         )
         return HttpResponseRedirect(checkout_session.url, status=303)
@@ -61,7 +77,7 @@ class OrderCreateView(CreateView):
 
 def fulfill_checkout(session_id):
     order = Order.objects.get(id=int(session_id.metadata['order_id']))
-    order.update_after_success_payment()
+    order.update_after_success_payment(session_id)
     if order.initiator:
         for basket in Basket.objects.filter(user=order.initiator):
             basket.delete()

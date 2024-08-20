@@ -23,6 +23,6 @@ def cart_remove(request):
     if request.method == 'POST':
         product_id = request.POST.get('product_id')
         product = get_object_or_404(ProductProxy, id=product_id)
-        cart = Cart(request)
+        cart = Cart(request.session)
         cart.remove(product=product)
         return JsonResponse({})

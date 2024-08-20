@@ -6,8 +6,8 @@ from users.models import Basket
 
 class Cart:
 
-    def __init__(self, request) -> None:
-        self.session = request.session
+    def __init__(self, session) -> None:
+        self.session = session
         self.cart = self.session.get('session_key', {})
         if 'session_key' not in self.session:
             self.session['session_key'] = self.cart
@@ -89,9 +89,10 @@ class Cart:
                 basket.save()
             else:
                 Basket.objects.create(user=user, product=product, quantity=value['quantity'])
-        for basket in Basket.objects.filter(user=user):
-            if str(basket.product.id) not in self.cart.keys():
-                basket.delete()
+        if action == 'logout':
+            for basket in Basket.objects.filter(user=user):
+                if str(basket.product.id) not in self.cart.keys():
+                    basket.delete()
 
     def cart_wipe(self):
         self.session['session_key'] = {}

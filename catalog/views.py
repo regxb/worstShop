@@ -6,7 +6,7 @@ from catalog.models import Category, Product, ProductProxy
 
 
 def products_view(request, slug):
-    cart = Cart(request)
+    cart = Cart(request.session)
     category = get_object_or_404(Category, slug=slug)
     products = ProductProxy.objects.filter(category=category)
     cart_products_title = [item['product'].title for item in cart]
@@ -24,7 +24,7 @@ def category_list(request):
 
 
 def search(request):
-    cart = Cart(request)
+    cart = Cart(request.session)
     query = request.GET.get('search_tag')
     if query:
         products = Product.objects.filter(

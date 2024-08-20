@@ -53,6 +53,12 @@ class UserLoginView(LoginView):
             cart.add(basket.product, quantity=basket.quantity)
         return super(UserLoginView, self).form_valid(form)
 
+    def get_success_url(self):
+        next_url = self.request.POST.get('next')
+        if next_url:
+            return next_url
+        return reverse('catalog:category_list')
+
 
 class UserLogoutView(LogoutView):
     template_name = reverse_lazy('users:login')

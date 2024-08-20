@@ -30,6 +30,9 @@
           <form class="card-body cardbody-color p-lg-5" method="post" action="{% url 'users:login' %}">
             {% csrf_token %}
             {{ form|crispy }}
+            
+            <input type="hidden" name="next" value="{{ request.GET.next }}">
+            
             <div class="text-center">
               <button type="submit" class="btn btn-primary px-5 mb-5 mt-4 w-50">Войти</button>
             </div>

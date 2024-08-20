@@ -10,7 +10,7 @@ def get_cart_data(request, action):
     if request.method == 'POST':
         product_id = request.POST.get('product_id')
         product = get_object_or_404(ProductProxy, id=product_id)
-        cart = Cart(request)
+        cart = Cart(request.session)
         if action == 'add':
             cart.add(product)
         elif action == 'delete':

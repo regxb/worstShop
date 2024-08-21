@@ -115,6 +115,7 @@ TEMPLATES = [
                 # Custom Context Processors
                 'catalog.context_processors.categories',
                 'cart.context_processors.cart',
+                'users.context_processors.wishlist',
             ],
         },
     },
@@ -196,6 +197,7 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 # Users
 
+LOGIN_URL = '/user/login/'
 AUTH_USER_MODEL = 'users.User'
 LOGIN_REDIRECT_URL = 'catalog:category_list'
 LOGOUT_REDIRECT_URL = 'users:login'

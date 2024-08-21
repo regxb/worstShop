@@ -1,15 +1,33 @@
 from django.contrib import messages
 from django.contrib.auth import get_user_model
 from django.contrib.auth.views import LoginView, LogoutView
-from django.http import HttpResponseRedirect
+from django.http import HttpResponseRedirect, JsonResponse
+from django.shortcuts import render
 from django.urls import reverse, reverse_lazy
 from django.views import generic
 
 from cart.cart import Cart
+from catalog.models import Product
 from users.forms import UserAuthenticationForm, UserCreateForm
-from users.models import Basket, EmailVerification
+from users.models import Basket, EmailVerification, Wishlist
 
 User = get_user_model()
+
+
+class UserWishListView(generic.ListView):
+    model = Wishlist
+    template_name = 'users/wishlist.html'
+
+    def get_context_data(self, **kwargs):
+        cart = Cart(self.request.session)
+        cart_products_title = [item['product'].title for item in cart]
+        context = super().get_context_data(**kwargs)
+        context['cart_products_title'] = cart_products_title
+        return context
+
+    def get_queryset(self):
+        queryset = super(UserWishListView, self).get_queryset()
+        return queryset.filter(user=self.request.user)
 
 
 class UserRegistrationView(generic.CreateView):
@@ -88,3 +106,34 @@ class EmailVerificationView(generic.RedirectView):
             messages.success(self.request, 'Вы успешно зарегистрировались!')
             return super(EmailVerificationView, self).get(request, *args, **kwargs)
         return HttpResponseRedirect(reverse('users:login'))
+
+
+def add_to_wishlist(request):
+    if not request.user.is_authenticated:
+        return JsonResponse({'error': 'Unauthorized'}, status=401)
+    if request.method == 'POST':
+        product_id = request.POST.get('product_id')
+        if Product.objects.filter(id=product_id).exists():
+            product = Product.objects.get(id=product_id)
+            if not Wishlist.objects.filter(user=request.user, product=product).exists():
+                Wishlist.objects.create(user=request.user, product=product)
+                wishlist_quantity = Wishlist.objects.filter(user=request.user).count()
+                return JsonResponse({
+                    'wishlist_quantity': wishlist_quantity
+                })
+    return render(request, 'users/wishlist.html')
+
+
+def delete_from_wishlist(request):
+    wishlist_quantity = Wishlist.objects.filter(user=request.user).count()
+    if request.method == 'POST':
+        product_id = request.POST.get('product_id')
+        if Product.objects.filter(id=product_id).exists():
+            product = Product.objects.get(id=product_id)
+            if Wishlist.objects.filter(user=request.user, product=product).exists():
+                favorite_product = Wishlist.objects.filter(user=request.user, product=product).first()
+                favorite_product.delete()
+        return JsonResponse({
+            'wishlist_quantity': wishlist_quantity
+        })
+    return render(request, 'users/wishlist.html')

@@ -1,0 +1,129 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load custom_filters %}
+{% block content %}
+
+  <section style="background-color: #eee;">
+    <div class="container py-5">
+
+      {% for obj in wishlist %}
+        {% with obj.product as product %}
+
+          <div class="row justify-content-center mb-3">
+            <div class="col-md-12 col-xl-10">
+              <div class="card shadow-0 border rounded-3">
+                <div class="card-body">
+                  <div class="row">
+                    <div class="col-3">
+                      <div class="bg-image hover-zoom ripple rounded ripple-surface">
+                        <img src="{{ product.image.url }}" class="product-image" style="width: 80%"/>
+                        <a href="#">
+                          <div class="hover-overlay">
+                            <div class="mask" style="background-color: rgba(253, 253, 253, 0.15);"></div>
+                          </div>
+                        </a>
+                      </div>
+                    </div>
+                    <div class="col-md-6 col-lg-6 col-xl-6 d-flex flex-column">
+                      <h5>{{ product.title }}</h5>
+                      <p class="mb-4 mb-md-0">
+                        {{ product.description }}
+                      </p>
+                      <div class="mt-auto d-flex flex-row">
+                        <div class="text-danger mb-1 me-2" style="margin-right: 5px">
+                          <i class="fa fa-star"></i>
+                          <i class="fa fa-star"></i>
+                          <i class="fa fa-star"></i>
+                          <i class="fa fa-star"></i>
+                        </div>
+                        <span>310</span>
+                      </div>
+                    </div>
+                    <div class="col-3 border-sm-start-none border-start">
+                      <div class="align-items-end mb-1" style="text-align: end">
+                        <span class="text-danger text-center"><s> {{ product.price| format_number }}&nbsp;₽</s></span>
+                        <div class="align-items-end mb-1">
+                          <span style="font-size: 21px; font-weight: 600">{{ product.price| format_number }}&nbsp;₽ </span>
+                        </div>
+                      </div>
+                      <div class="d-flex flex-column mt-4">
+                        {% if product.title in cart_products_title %}
+                          <a class="btn btn-success btn-sm text-white" href="{% url 'cart:cart_view' %}">
+                            Товар в корзине
+                          </a>
+                        {% else %}
+                          <button class="add-button btn btn-primary btn-sm" value="{{ product.id }}" type="button">
+                            Добавить в корзину
+                          </button>
+                        {% endif %}
+                        <button class="delete-wishlist btn btn-outline-danger btn-sm mt-2" value="{{ product.id }}"
+                                type="button">
+                          Убрать из избранного
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+        {% endwith %}
+      {% endfor %}
+
+    </div>
+  </section>
+  <script>
+      function formatNumber(value) {
+          return value.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ' ');
+      }
+
+      $(document).on('click', '.add-button', function (e) {
+          e.preventDefault();
+          var product_id = $(this).val();
+          var $button = $(this);
+
+          $.ajax({
+              type: 'POST',
+              url: '{% url "cart:cart_add" %}',
+              data: {
+                  product_id: product_id,
+                  csrfmiddlewaretoken: '{{ csrf_token }}',
+                  action: 'post'
+              },
+              success: function (response) {
+                  console.log(product_id);
+                  let newLink = $('<a>', {
+                      class: 'btn btn-success btn-sm text-white',
+                      href: '{% url "cart:cart_view" %}',
+                      text: 'Товар в корзине'
+                  });
+                  $button.replaceWith(newLink);
+                  $('#cart-count').text(response.new_quantity_digit);
+                  let formattedPrice = formatNumber(response.price);
+                  $('#cart_price').text(formattedPrice + ' ' + '₽');
+              },
+          });
+      });
+
+      $(document).on('click', '.delete-wishlist', function (e) {
+          e.preventDefault();
+          var product_id = $(this).val();
+
+          $.ajax({
+              type: 'POST',
+              url: '{% url "users:wishlist_delete" %}',
+              data: {
+                  product_id: product_id,
+                  csrfmiddlewaretoken: '{{ csrf_token }}',
+                  action: 'post'
+              },
+              success: function () {
+                  location.reload()
+              },
+
+          });
+      });
+      
+  </script>
+{% endblock %}

@@ -1,0 +1,167 @@
+{% extends 'base.html' %}
+{% block content %}
+
+  <div class="container mt-5">
+
+
+    <section>
+      <div class="container px-4 px-lg-5 my-5">
+        <div class="row gx-4 gx-lg-5 align-items-center">
+          <div class="col-md-4"><img class="card-img-top mb-5 mb-md-0" src="{{ product.image.url }}" alt="..."/>
+          </div>
+
+          <div class="col-md-6">
+            <h4>{{ product.title }}</h4>
+
+            <p class="lead">{{ product.description }}</p>
+            <div class="row mt-5">
+              <div class="col-6 d-flex">
+                <div class="text-danger mb-1 me-2" style="margin-right: 5px">
+                  <i class="fa fa-star"></i>
+                  <i class="fa fa-star"></i>
+                  <i class="fa fa-star"></i>
+                  <i class="fa fa-star"></i>
+                  <span>310</span>
+                </div>
+              </div>
+              <div class="col-6 d-flex justify-content-end">
+                <span class="text-decoration-line-through"
+                      style="font-size: 18px; color: #db5246">{{ product.price }} ₽</span>
+                &nbsp; &nbsp;
+                <span>{{ product.price }} ₽</span>
+              </div>
+            </div>
+            <div class="row">
+              <div class="col d-flex justify-content-end">
+                <div class="row justify-content-end mt-3 me-2">
+                  {% if product.title in cart_products_title %}
+                    <a class="btn btn-success btn-sm text-white" href="{% url 'cart:cart_view' %}">
+                      Товар в корзине
+                    </a>
+                  {% else %}
+                    <button class="add-button btn btn-primary btn-sm" value="{{ product.id }}" type="button">
+                      Добавить в корзину
+                    </button>
+                  {% endif %}
+                  {% if product.title in wishlist_product_title %}
+                    <a class="btn btn btn-outline-success btn-sm mt-2" href="{% url 'users:wishlist' %}">
+                      В избранном
+                    </a>
+                  {% else %}
+                    <button class="add-wishlist btn btn-outline-primary btn-sm mt-2" value="{{ product.id }}"
+                            type="button">
+                      Добавить в избранное
+                    </button>
+                  {% endif %}
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+    </section>
+
+
+  </div>
+
+  <section class="py-2 bg-light">
+    <div class="container px-4 px-lg-5 mt-5">
+      <h2 class="mb-4">Похожие товары</h2>
+      <div class="row gx-4 gx-lg-5 row-cols-2 row-cols-md-3 row-cols-xl-4 justify-content-center">
+        {% for same_product in same_products %}
+          <div class="col mb-5">
+            <div class="card h-100" style="border-radius: 15px">
+              <a href="{% url 'catalog:detail' same_product.slug %}">
+                <div class="card-img-wrapper d-flex justify-content-center">
+                  <img class="card-img-top mt-3" src="{{ same_product.image.url }}" alt="..." style="max-width: 80%"/>
+                </div>
+              </a>
+              <div class="card-body p-4">
+                <div class="mb-2 text-center">
+                  <span>{{ same_product.price }} ₽</span>
+                </div>
+                <div class="text-center">
+                  <a href="{% url 'catalog:detail' same_product.slug %}" style="text-decoration: none; color: black">
+                    <span style="font-size: 17px; font-weight: 500">{{ same_product.title }}</span>
+                  </a>
+                </div>
+                <div class="d-flex justify-content-center">
+                </div>
+              </div>
+              <div class="card-footer p-4 pt-0 border-top-0 bg-transparent">
+                <div class="text-center">
+                  <a class="btn btn-outline-dark mt-auto" href="{% url 'catalog:detail' same_product.slug %}">Подробнее...</a>
+                </div>
+              </div>
+            </div>
+          </div>
+        {% endfor %}
+      </div>
+    </div>
+  </section>
+
+  <script>
+      function formatNumber(value) {
+          return value.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ' ');
+      }
+
+      $(document).on('click', '.add-button', function (e) {
+          e.preventDefault();
+          var product_id = $(this).val();
+          var $button = $(this);
+
+          $.ajax({
+              type: 'POST',
+              url: '{% url "cart:cart_add" %}',
+              data: {
+                  product_id: product_id,
+                  csrfmiddlewaretoken: '{{ csrf_token }}',
+                  action: 'post'
+              },
+              success: function (response) {
+                  let newLink = $('<a>', {
+                      class: 'btn btn-success btn-xl text-white',
+                      href: '{% url "cart:cart_view" %}',
+                      text: 'Товар в корзине'
+                  });
+                  $button.replaceWith(newLink);
+                  $('#cart-count').text(response.new_quantity_digit);
+                  let formattedPrice = formatNumber(response.price);
+                  $('#cart_price').text(formattedPrice + ' ' + '₽');
+              },
+          });
+      });
+
+      $(document).on('click', '.add-wishlist', function (e) {
+          e.preventDefault();
+          var product_id = $(this).val();
+          var $button = $(this);
+
+          $.ajax({
+              type: 'POST',
+              url: '{% url "users:wishlist_add" %}',
+              data: {
+                  product_id: product_id,
+                  csrfmiddlewaretoken: '{{ csrf_token }}',
+                  action: 'post'
+              },
+              success: function (response) {
+                  let newLink = $('<a>', {
+                      class: 'btn btn btn-outline-success btn-xl mt-2 me-3',
+                      href: '{% url "users:wishlist" %}',
+                      text: 'В избранном'
+                  });
+                  $button.replaceWith(newLink);
+                  $('#wishlist-count').text(response.wishlist_quantity);
+
+              },
+              error: function (xhr) {
+                  if (xhr.status === 401) {
+                      window.location.href = '/user/login/';
+                  }
+              }
+          });
+      });
+  </script>
+
+{% endblock %}

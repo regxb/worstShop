@@ -42,3 +42,19 @@ def search(request):
         }
         return render(request, 'catalog/products.html', context)
     return render(request, 'catalog/blank_search.html')
+
+
+def product_details(request, slug):
+    wishlist_product_title = [item.product.title for item in Wishlist.objects.filter(user=request.user)]
+    cart = Cart(request.session)
+    cart_products_title = [item['product'].title for item in cart]
+    product = Product.objects.get(slug=slug)
+    same_products = Product.objects.filter(brand=product.brand).exclude(id=product.id)
+    context = {
+        'product': product,
+        'same_products': same_products,
+        'cart_products_title': cart_products_title,
+        'wishlist_product_title': wishlist_product_title,
+    }
+    return render(request, 'catalog/product_details.html', context)
+

@@ -12,8 +12,8 @@
                 <div class="row">
                   <div class="col-3">
                     <div class="bg-image hover-zoom ripple rounded ripple-surface">
-                      <img src="{{ product.image.url }}" class="product-image" style="width: 80%"/>
-                      <a href="#">
+                      <a href="{% url 'catalog:detail' product.slug %}">
+                        <img src="{{ product.image.url }}" class="product-image" style="width: 80%"/>
                         <div class="hover-overlay">
                           <div class="mask" style="background-color: rgba(253, 253, 253, 0.15);"></div>
                         </div>
@@ -21,7 +21,7 @@
                     </div>
                   </div>
                   <div class="col-md-6 col-lg-6 col-xl-6 d-flex flex-column">
-                    <h5>{{ product.title }}</h5>
+                    <a href="{% url 'catalog:detail' product.slug %}" style="text-decoration: none; color: black"><h5>{{ product.title }}</h5></a>
                     <p class="mb-4 mb-md-0">
                       {{ product.description }}
                     </p>
@@ -52,10 +52,17 @@
                           Добавить в корзину
                         </button>
                       {% endif %}
-                      <button class="btn btn-outline-primary btn-sm mt-2"
-                              type="button">
-                        В избранное
-                      </button>
+                      {% if product.title in wishlist_product_title %}
+                        <a class="btn btn btn-outline-success btn-sm mt-2" href="{% url 'users:wishlist' %}">
+                          В избранном
+                        </a>
+                      {% else %}
+                        <button class="add-wishlist btn btn-outline-primary btn-sm mt-2" value="{{ product.id }}"
+                                type="button">
+                          Добавить в избранное
+                        </button>
+                      {% endif %}
+
                     </div>
                   </div>
                 </div>
@@ -85,7 +92,6 @@
                   action: 'post'
               },
               success: function (response) {
-                  console.log(product_id);
                   let newLink = $('<a>', {
                       class: 'btn btn-success btn-sm text-white',
                       href: '{% url "cart:cart_view" %}',
@@ -98,5 +104,37 @@
               },
           });
       });
+
+      $(document).on('click', '.add-wishlist', function (e) {
+          e.preventDefault();
+          var product_id = $(this).val();
+          var $button = $(this);
+
+          $.ajax({
+              type: 'POST',
+              url: '{% url "users:wishlist_add" %}',
+              data: {
+                  product_id: product_id,
+                  csrfmiddlewaretoken: '{{ csrf_token }}',
+                  action: 'post'
+              },
+              success: function (response) {
+                  let newLink = $('<a>', {
+                      class: 'btn btn btn-outline-success btn-sm mt-2',
+                      href: '{% url "users:wishlist" %}',
+                      text: 'В избранном'
+                  });
+                  $button.replaceWith(newLink);
+                  $('#wishlist-count').text(response.wishlist_quantity);
+
+              },
+              error: function (xhr) {
+                  if (xhr.status === 401) {
+                      window.location.href = '/user/login/';
+                  }
+              }
+          });
+      });
+
   </script>
 {% endblock %}

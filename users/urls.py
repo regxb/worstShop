@@ -11,6 +11,6 @@ urlpatterns = [
     path('logout/', views.UserLogoutView.as_view(), name='logout'),
     path('verify/<uuid:code>', views.EmailVerificationView.as_view(), name='email_verification'),
     path('wishlist/', login_required(views.UserWishListView.as_view()), name='wishlist'),
-    path('wishlist/add/', login_required(views.add_to_wishlist), name='wishlist_add'),
-    path('wishlist/delete/', login_required(views.delete_from_wishlist), name='wishlist_delete'),
+    path('wishlist/add/', views.add_to_wishlist, name='wishlist_add'),
+    path('wishlist/delete/', views.delete_from_wishlist, name='wishlist_delete'),
 ]

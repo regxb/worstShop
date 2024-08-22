@@ -1,10 +1,17 @@
+from django.conf import settings
 from django.contrib import messages
-from django.contrib.auth import get_user_model
+from django.contrib.auth import get_user_model, login
 from django.contrib.auth.views import LoginView, LogoutView
 from django.http import HttpResponseRedirect, JsonResponse
-from django.shortcuts import render
+from django.shortcuts import redirect, render
 from django.urls import reverse, reverse_lazy
 from django.views import generic
+from django_telegram_login.authentication import verify_telegram_authentication
+from django_telegram_login.errors import (NotTelegramDataError,
+                                          TelegramDataIsOutdatedError)
+from django_telegram_login.widgets.constants import MEDIUM
+from django_telegram_login.widgets.generator import \
+    create_redirect_login_widget
 
 from cart.cart import Cart
 from catalog.models import Product
@@ -52,6 +59,17 @@ class UserRegistrationView(generic.CreateView):
 
 
 class UserLoginView(LoginView):
+
+    def get_context_data(self, **kwargs):
+        context = super(UserLoginView, self).get_context_data(**kwargs)
+        telegram_login_widget = create_redirect_login_widget(
+            redirect_url=reverse('users:telegram_auth'),
+            bot_name=settings.TELEGRAM_BOT_NAME,
+            size=MEDIUM,
+            user_photo=True,
+            access_write=True)
+        context['telegram_login_widget'] = telegram_login_widget
+        return context
 
     def dispatch(self, request, *args, **kwargs):
         if request.user.is_authenticated:
@@ -137,3 +155,27 @@ def delete_from_wishlist(request):
             'wishlist_quantity': wishlist_quantity
         })
     return render(request, 'users/wishlist.html')
+
+
+def telegram_auth(request):
+    if request.GET.get('hash'):
+        try:
+            data = request.GET
+            verify_telegram_authentication(bot_token=settings.TELEGRAM_BOT_TOKEN, request_data=data)
+
+            if not User.objects.filter(telegram_id=data['id']).exists():
+                User.objects.create_user(
+                    username=data['username'],
+                    telegram_id=data['id'],
+                    first_name=data['first_name']
+                )
+            user = User.objects.get(telegram_id=data['id'])
+            login(request, user)
+
+        except TelegramDataIsOutdatedError:
+            return redirect('users:login')
+
+        except NotTelegramDataError:
+            return redirect('users:login')
+
+    return redirect('catalog:category_list')

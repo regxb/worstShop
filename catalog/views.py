@@ -7,12 +7,14 @@ from users.models import Wishlist
 
 
 def products_view(request, slug):
+    wishlist_product_title = []
+    if request.user.is_authenticated:
+        wishlist_product_title = [item.product.title for item in Wishlist.objects.filter(user=request.user)]
     cart = Cart(request.session)
     category = get_object_or_404(Category, slug=slug)
     products = ProductProxy.objects.filter(category=category)
     cart_products_title = [item['product'].title for item in cart]
     products_title_list = [str(item) for item in products]
-    wishlist_product_title = [item.product.title for item in Wishlist.objects.filter(user=request.user)]
     context = {
         "products": products,
         'products_title_list': products_title_list,
@@ -45,7 +47,9 @@ def search(request):
 
 
 def product_details(request, slug):
-    wishlist_product_title = [item.product.title for item in Wishlist.objects.filter(user=request.user)]
+    wishlist_product_title = []
+    if request.user.is_authenticated:
+        wishlist_product_title = [item.product.title for item in Wishlist.objects.filter(user=request.user)]
     cart = Cart(request.session)
     cart_products_title = [item['product'].title for item in cart]
     product = Product.objects.get(slug=slug)

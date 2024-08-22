@@ -8,7 +8,7 @@ from catalog.models import Product
 
 
 class User(AbstractUser):
-    ...
+    telegram_id = models.IntegerField(unique=True, null=True, blank=True)
 
 
 class EmailVerification(models.Model):

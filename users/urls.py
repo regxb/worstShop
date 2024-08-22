@@ -13,4 +13,5 @@ urlpatterns = [
     path('wishlist/', login_required(views.UserWishListView.as_view()), name='wishlist'),
     path('wishlist/add/', views.add_to_wishlist, name='wishlist_add'),
     path('wishlist/delete/', views.delete_from_wishlist, name='wishlist_delete'),
+    path('auth/telegram/', views.telegram_auth, name='telegram_auth'),
 ]

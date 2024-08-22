@@ -55,11 +55,3 @@
 
 
 
-
-<script>
-    document.addEventListener("htmx:beforeSwap", function (e) {
-        if (e.detail.target.classList.contains("login-form") && !e.detail.xhr.response) {
-            location.reload()
-        }
-    })
-</script>

@@ -40,6 +40,9 @@ env = environ.Env(
     STRIPE_PUBLIC_KEY=str,
     STRIPE_SECRET_KEY=str,
     STRIPE_WEBHOOK_SECRET=str,
+
+    TELEGRAM_BOT_TOKEN=str,
+    TELEGRAM_BOT_NAME=str
 )
 
 
@@ -78,6 +81,8 @@ INSTALLED_APPS = [
     "crispy_forms",
     "crispy_bootstrap5",
     "debug_toolbar",
+
+    'django_telegram_login',
 
     # app
     'catalog.apps.CatalogConfig',
@@ -232,3 +237,10 @@ CELERY_RESULT_BACKEND = f'redis://{REDIS_HOST}:6379/0'
 STRIPE_PUBLIC_KEY = env('STRIPE_PUBLIC_KEY')
 STRIPE_SECRET_KEY = env('STRIPE_SECRET_KEY')
 STRIPE_WEBHOOK_SECRET = env('STRIPE_WEBHOOK_SECRET')
+
+# Telegram
+
+TELEGRAM_BOT_NAME = env('TELEGRAM_BOT_NAME')
+TELEGRAM_BOT_TOKEN = env('TELEGRAM_BOT_TOKEN')
+TELEGRAM_LOGIN_REDIRECT_URL = f'{DOMAIN_NAME}/user/auth/telegram'
+SECURE_CROSS_ORIGIN_OPENER_POLICY = None

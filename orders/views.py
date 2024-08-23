@@ -4,6 +4,7 @@ import stripe
 from django.conf import settings
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.sessions.backends.db import SessionStore
+from django.core.cache import cache
 from django.http import HttpResponse, HttpResponseRedirect
 from django.shortcuts import redirect, render
 from django.urls import reverse, reverse_lazy
@@ -38,7 +39,13 @@ class OrderView(LoginRequiredMixin, ListView):
 
     def get_queryset(self):
         queryset = super(OrderView, self).get_queryset()
-        return queryset.filter(initiator=self.request.user)
+
+        user_order = cache.get(f'user_order_{self.request.user.id}')
+        if not user_order:
+            user_order = queryset.filter(initiator=self.request.user)
+            cache.set(f'user_order_{self.request.user.id}', user_order, 60)
+
+        return user_order
 
 
 class OrderCreateView(CreateView):

@@ -19,8 +19,16 @@ from django.conf import settings
 from django.conf.urls.static import static
 from django.contrib import admin
 from django.urls import include, path
+from rest_framework import routers
+from rest_framework_simplejwt.views import TokenObtainPairView
 
+from catalog.api import ProductApiView
+from orders.api import OrderApiView
 from orders.views import my_webhook_view
+
+router = routers.DefaultRouter()
+router.register(r'products', ProductApiView)
+router.register(r'orders', OrderApiView)
 
 urlpatterns = [
     path('admin/', admin.site.urls),
@@ -29,6 +37,8 @@ urlpatterns = [
     path('cart/', include('cart.urls', namespace='cart')),
     path('order/', include('orders.urls', namespace='orders')),
     path('webhook/stripe/', my_webhook_view, name='stripe-webhook'),
+    path('api/', include(router.urls)),
+    path('api/token/', TokenObtainPairView.as_view(), name='token_obtain_pair'),
 ]
 
 if settings.DEBUG:

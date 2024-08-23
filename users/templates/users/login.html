@@ -14,7 +14,7 @@
                 <div class="alert alert-success" role="alert">
                   {{ message|safe }}
                 </div>
-              {% elif message.tags == "warning"%}
+              {% elif message.tags == "warning" %}
                 <div class="alert alert-warning" role="alert">
                   {{ message|safe }}
                 </div>
@@ -30,11 +30,16 @@
           <form class="card-body cardbody-color p-lg-5" method="post" action="{% url 'users:login' %}">
             {% csrf_token %}
             {{ form|crispy }}
-            
+
             <input type="hidden" name="next" value="{{ request.GET.next }}">
-            
+
             <div class="text-center">
-              <button type="submit" class="btn btn-primary px-5 mb-5 mt-4 w-50">Войти</button>
+              <button type="submit" class="btn btn-primary px-5 mb-3 mt-4 w-50">Войти</button>
+              <div class="mb-4">
+                {% autoescape off %}
+                  {{ telegram_login_widget }}
+                {% endautoescape %}
+              </div>
             </div>
             <a href="{% url 'users:registration' %}">
               <div id="emailHelp" class="form-text text-center mb-5 text-dark">

@@ -120,7 +120,7 @@
               },
               success: function (response) {
                   let newLink = $('<a>', {
-                      class: 'btn btn-success btn-xl text-white',
+                      class: 'btn btn-success btn-sm text-white',
                       href: '{% url "cart:cart_view" %}',
                       text: 'Товар в корзине'
                   });
@@ -147,7 +147,7 @@
               },
               success: function (response) {
                   let newLink = $('<a>', {
-                      class: 'btn btn btn-outline-success btn-xl mt-2 me-3',
+                      class: 'btn btn btn-outline-success btn-sm mt-2',
                       href: '{% url "users:wishlist" %}',
                       text: 'В избранном'
                   });

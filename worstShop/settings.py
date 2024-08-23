@@ -45,7 +45,6 @@ env = environ.Env(
     TELEGRAM_BOT_NAME=str
 )
 
-
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -83,6 +82,8 @@ INSTALLED_APPS = [
     "debug_toolbar",
 
     'django_telegram_login',
+    'rest_framework',
+    'rest_framework_simplejwt',
 
     # app
     'catalog.apps.CatalogConfig',
@@ -209,7 +210,6 @@ LOGOUT_REDIRECT_URL = 'users:login'
 
 DOMAIN_NAME = env('DOMAIN_NAME')
 
-
 # email verification
 if DEBUG:
     EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
@@ -244,3 +244,14 @@ TELEGRAM_BOT_NAME = env('TELEGRAM_BOT_NAME')
 TELEGRAM_BOT_TOKEN = env('TELEGRAM_BOT_TOKEN')
 TELEGRAM_LOGIN_REDIRECT_URL = f'{DOMAIN_NAME}/user/auth/telegram'
 SECURE_CROSS_ORIGIN_OPENER_POLICY = None
+
+# Rest
+
+REST_FRAMEWORK = {
+    'DEFAULT_RENDERER_CLASSES': [
+        'rest_framework.renderers.JSONRenderer',
+    ],
+    'DEFAULT_AUTHENTICATION_CLASSES': (
+        'rest_framework_simplejwt.authentication.JWTAuthentication',
+    ),
+}

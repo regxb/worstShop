@@ -1,8 +1,12 @@
+from django.contrib.auth.mixins import LoginRequiredMixin
 from django.core.cache import cache
 from django.db.models import Q
 from django.shortcuts import get_object_or_404, render
+from django.urls import reverse_lazy
+from django.views.generic import CreateView
 
 from cart.cart import Cart
+from catalog.forms import ReviewForm
 from catalog.models import Category, Product, ProductProxy
 from orders.models import OrderItem
 from users.models import Wishlist
@@ -54,6 +58,7 @@ def search(request):
 
 
 def product_details(request, slug):
+    review_form = ReviewForm()
     product = cache.get(f'product_{slug}')
     if not product:
         product = Product.objects.get(slug=slug)
@@ -74,5 +79,19 @@ def product_details(request, slug):
         'cart_products_title': cart_products_title,
         'wishlist_product_title': wishlist_product_title,
         'matching_items': matching_items,
+        'review_form': review_form,
     }
     return render(request, 'catalog/product_details.html', context)
+
+
+class ReviewCreateView(CreateView):
+    form_class = ReviewForm
+    success_url = reverse_lazy('catalog:category_list')
+    template_name = 'catalog/product_details.html'
+
+    def form_valid(self, form):
+        product_id = self.request.POST.get('product_id')
+        product = Product.objects.get(id=product_id)
+        form.instance.user = self.request.user
+        form.instance.product = product
+        return super().form_valid(form)

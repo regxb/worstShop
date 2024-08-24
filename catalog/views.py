@@ -4,6 +4,7 @@ from django.shortcuts import get_object_or_404, render
 
 from cart.cart import Cart
 from catalog.models import Category, Product, ProductProxy
+from orders.models import OrderItem
 from users.models import Wishlist
 
 
@@ -53,16 +54,18 @@ def search(request):
 
 
 def product_details(request, slug):
-    wishlist_product_title = []
-    if request.user.is_authenticated:
-        wishlist_product_title = [item.product.title for item in Wishlist.objects.filter(user=request.user)]
-    cart = Cart(request.session)
-    cart_products_title = [item['product'].title for item in cart]
-
     product = cache.get(f'product_{slug}')
     if not product:
         product = Product.objects.get(slug=slug)
         cache.set(f'product_{slug}', product, 300)
+    wishlist_product_title = []
+    matching_items = False
+    if request.user.is_authenticated:
+        wishlist_product_title = [item.product.title for item in Wishlist.objects.filter(user=request.user)]
+        user_oder_products = OrderItem.objects.filter(user=request.user)
+        matching_items = any(item.product == product and item.order.status != 0 for item in user_oder_products)
+    cart = Cart(request.session)
+    cart_products_title = [item['product'].title for item in cart]
 
     same_products = Product.objects.filter(brand=product.brand).exclude(id=product.id)
     context = {
@@ -70,5 +73,6 @@ def product_details(request, slug):
         'same_products': same_products,
         'cart_products_title': cart_products_title,
         'wishlist_product_title': wishlist_product_title,
+        'matching_items': matching_items,
     }
     return render(request, 'catalog/product_details.html', context)

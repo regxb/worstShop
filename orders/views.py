@@ -13,8 +13,9 @@ from django.views.generic import ListView, TemplateView
 from django.views.generic.edit import CreateView
 
 from cart.cart import Cart
+from catalog.models import Product
 from orders.forms import OrderForm
-from orders.models import Order
+from orders.models import Order, OrderItem
 from users.models import Basket
 
 stripe.api_key = settings.STRIPE_SECRET_KEY
@@ -59,14 +60,24 @@ class OrderCreateView(CreateView):
             return redirect('orders:orders')
         return super(OrderCreateView, self).dispatch(request, *args, **kwargs)
 
-    def post(self, request, *args, **kwargs):
-        super(OrderCreateView, self).post(request, *args, **kwargs)
-        cart = Cart(request.session)
+    def form_valid(self, form):
+        order = form.save(commit=False)
+        order.update_order_after_create(request=self.request)
+        order.save()
+        cart = Cart(self.request.session)
+        user_products_in_order = []
+        for product_id, products_data in cart.cart.items():
+            product = Product.objects.get(id=product_id)
+            user = self.request.user
+            order_items = OrderItem(product=product, user=user, order=order)
+            user_products_in_order.append(order_items)
+        OrderItem.objects.bulk_create(user_products_in_order)
+
         success_token = str(uuid.uuid4())
         checkout_session = stripe.checkout.Session.create(
             line_items=cart.get_stripe_products_data(),
-            metadata={'order_id': self.object.id,
-                      'session_key': request.session.session_key,
+            metadata={'order_id': order.id,
+                      'session_key': self.request.session.session_key,
                       'success_token': success_token,
                       },
             mode='payment',
@@ -74,12 +85,6 @@ class OrderCreateView(CreateView):
             cancel_url='{}{}'.format(settings.DOMAIN_NAME, reverse('catalog:category_list')),
         )
         return HttpResponseRedirect(checkout_session.url, status=303)
-
-    def form_valid(self, form):
-        order = form.save(commit=False)
-        order.update_order_after_create(request=self.request)
-        order.save()
-        return super(OrderCreateView, self).form_valid(form)
 
 
 def fulfill_checkout(session_id):

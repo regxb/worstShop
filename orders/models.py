@@ -54,7 +54,8 @@ class Order(models.Model):
                     'product_price': round(float(product_data['product_price'])),
                     'quantity': cart.get_product_quantity(product_id),
                     'product_image': product.image.url,
-                    'price': round(float(cart.get_product_price(product_id)))
+                    'price': round(float(cart.get_product_price(product_id))),
+                    'slug': product.slug
                 })
             self.products['products'] = products_data_list
 
@@ -71,3 +72,9 @@ class Order(models.Model):
             for product in order_details:
                 total_price += product['price']
         return round(total_price)
+
+
+class OrderItem(models.Model):
+    order = models.ForeignKey(Order, on_delete=models.CASCADE)
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    product = models.ForeignKey(Product, on_delete=models.CASCADE)

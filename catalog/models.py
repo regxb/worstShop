@@ -112,3 +112,4 @@ class Review(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='reviews')
     created_at = models.DateTimeField(auto_now_add=True)
     rating = models.IntegerField(choices=RATING_CHOICES)
+    comment = models.TextField(max_length=1000)

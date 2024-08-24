@@ -45,7 +45,8 @@ class Basket(models.Model):
             'product_price': round(float(self.product.price)),
             'quantity': self.quantity,
             'product_image': self.product.image.url,
-            'price': round(float(self.sum_basket()))
+            'price': round(float(self.sum_basket())),
+            'slug': self.product.slug
         }
 
 

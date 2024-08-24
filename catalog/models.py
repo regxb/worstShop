@@ -95,3 +95,20 @@ class ProductProxy(Product):
 
     class Meta:
         proxy = True
+
+
+class Review(models.Model):
+    from users.models import User
+
+    RATING_CHOICES = [
+        (1, '1'),
+        (2, '2'),
+        (3, '3'),
+        (4, '4'),
+        (5, '5'),
+    ]
+
+    product = models.ForeignKey(Product, on_delete=models.CASCADE)
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='reviews')
+    created_at = models.DateTimeField(auto_now_add=True)
+    rating = models.IntegerField(choices=RATING_CHOICES)

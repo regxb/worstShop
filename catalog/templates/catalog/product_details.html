@@ -1,9 +1,8 @@
 {% extends 'base.html' %}
+{% load crispy_forms_filters %}
 {% block content %}
 
   <div class="container mt-5">
-
-
     <section>
       <div class="container px-4 px-lg-5 my-5">
         <div class="row gx-4 gx-lg-5 align-items-center">
@@ -16,22 +15,33 @@
             <p class="lead">{{ product.description }}</p>
             <div class="row mt-5">
               <div class="col-6 d-flex">
-                <div class="text-danger mb-1 me-2" style="margin-right: 5px">
-                  <i class="fa fa-star"></i>
-                  <i class="fa fa-star"></i>
-                  <i class="fa fa-star"></i>
-                  <i class="fa fa-star"></i>
-                  <span>310</span>
+                <div class="text-danger mb-2 me-2" style="margin-right: 5px">
+                  <a href="#review" style="text-decoration: none; color: inherit">
+                    <span>{{ product.get_average_rating }}</span>
+                    <i class="fa fa-star"></i>
+                  </a>
                 </div>
               </div>
               <div class="col-6 d-flex justify-content-end">
                 <span class="text-decoration-line-through"
                       style="font-size: 18px; color: #db5246">{{ product.price }} ₽</span>
-                &nbsp; &nbsp;
+
                 <span>{{ product.price }} ₽</span>
               </div>
             </div>
             <div class="row">
+              <div class="col d-flex justify-content-start">
+                {% if user.is_authenticated %}
+                  <button class="mt-2 btn btn-primary" data-bs-toggle="modal" data-bs-target="#exampleModal"
+                          style="height: 40px">
+                    Оставить отзыв
+                  </button>
+                {% else %}
+                  <a href="{% url 'users:login' %}">
+                    <button class="mt-2 btn btn-primary">Оставить отзыв</button>
+                  </a>
+                {% endif %}
+              </div>
               <div class="col d-flex justify-content-end">
                 <div class="row justify-content-end mt-3 me-2">
                   {% if product.title in cart_products_title %}
@@ -99,6 +109,79 @@
       </div>
     </div>
   </section>
+
+  <section>
+    <div class="container px-4 px-lg-5 mt-5" id="review">
+      <div class="row d-flex justify-content-center">
+        <h2 class="mb-4">Отзывы</h2>
+        <div class="col-md-12 col-lg-10">
+
+          {% for review in reviews %}
+            <div class="card text-body mt-3">
+
+              <div class="card-body p-4">
+
+                <div class="d-flex flex-start">
+                  <img class="rounded-circle shadow-1-strong me-3"
+                       src="https://mdbcdn.b-cdn.net/img/Photos/Avatars/img%20(23).webp" alt="avatar" width="60"
+                       height="60"/>
+                  <div>
+                    <h6 class="fw-bold mb-1">{{ review.user.username }}</h6>
+                    <div class="d-flex align-items-center mb-3">
+                      <p class="mb-0">
+                        {{ review.created_at }}
+                      </p>
+                    </div>
+                    <p>{{ review.rating }}<i class="fa fa-star ms-2" style="color: red"></i></p>
+
+                    <span class="mb-0 mt-3">
+                  {{ review.comment }}
+                </span>
+                  </div>
+                </div>
+
+              </div>
+            </div>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+  </section>
+
+
+  <!-- Modal -->
+  <div class="modal fade" id="exampleModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="exampleModalLabel">Оставьте свой отзыв</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        {% if user_can_add_review %}
+          <form action="{% url 'catalog:add_review' product.slug %}" method="post">
+            <div class="modal-body">
+              {% csrf_token %}
+              <input type="hidden" name="product_id" value="{{ product.id }}">
+              {{ review_form| crispy }}
+            </div>
+            <div class="modal-footer">
+              <button type="button" class="btn btn-secondary" data-bs-danger="modal">Закрыть</button>
+              <button type="submit" class="btn btn-primary">Сохранить</button>
+            </div>
+          </form>
+        {% else %}
+          <div class="modal-body">
+            <span>Вы уже оставляли отзыв к данному товару</span>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-danger" data-bs-dismiss="modal">Закрыть</button>
+          </div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+
+
 
   <script>
       function formatNumber(value) {

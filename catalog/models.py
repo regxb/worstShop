@@ -83,6 +83,11 @@ class Product(models.Model):
     def get_absolute_url(self):
         return reverse("catalog:product_detail", args=[str(self.slug)])
 
+    def get_average_rating(self):
+        reviews = self.reviews.all()
+        total_rating = sum([review.rating for review in reviews])
+        return round(total_rating / reviews.count(), 1) if reviews.exists() else 0
+
 
 class ProductManager(models.Manager):
 
@@ -108,8 +113,14 @@ class Review(models.Model):
         (5, '5'),
     ]
 
-    product = models.ForeignKey(Product, on_delete=models.CASCADE)
+    product = models.ForeignKey(Product, on_delete=models.CASCADE, related_name='reviews')
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='reviews')
     created_at = models.DateTimeField(auto_now_add=True)
     rating = models.IntegerField(choices=RATING_CHOICES)
     comment = models.TextField(max_length=1000)
+
+    class Meta:
+        ordering = ('-created_at',)
+
+    def __str__(self):
+        return f'{self.user.username}: {self.comment}'

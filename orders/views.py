@@ -3,32 +3,22 @@ import uuid
 import stripe
 from django.conf import settings
 from django.contrib.auth.mixins import LoginRequiredMixin
-from django.contrib.sessions.backends.db import SessionStore
 from django.core.cache import cache
-from django.http import HttpResponse, HttpResponseRedirect
+from django.http import HttpResponseRedirect
 from django.shortcuts import redirect, render
 from django.urls import reverse, reverse_lazy
-from django.views.decorators.csrf import csrf_exempt
 from django.views.generic import ListView, TemplateView
 from django.views.generic.edit import CreateView
+from yookassa import Configuration, Payment
 
 from cart.cart import Cart
 from catalog.models import Product
 from orders.forms import OrderForm
 from orders.models import Order, OrderItem
-from users.models import Basket
 
 stripe.api_key = settings.STRIPE_SECRET_KEY
-
-
-class OrderSuccessCreateView(TemplateView):
-    template_name = 'orders/success_order.html'
-
-    def get(self, request, *args, **kwargs):
-        if request.GET.get('token') and Order.objects.filter(success_token=request.GET.get('token')).exists():
-            return render(request, 'orders/success_order.html')
-        else:
-            return redirect('catalog:category_list')
+Configuration.account_id = settings.YOOKASSA_ACCOUNT_ID
+Configuration.secret_key = settings.YOOKASSA_SECRET_KEY
 
 
 class OrderView(LoginRequiredMixin, ListView):
@@ -63,64 +53,50 @@ class OrderCreateView(CreateView):
     def form_valid(self, form):
         order = form.save(commit=False)
         order.update_order_after_create(request=self.request)
-        order.save()
         cart = Cart(self.request.session)
+
+        payment = Payment.create({
+            "amount": {
+                "value": order.get_order_price(),
+                "currency": "RUB"
+            },
+            "confirmation": {
+                "type": "redirect",
+                "return_url": '{}{}?token={}'.format(
+                    settings.DOMAIN_NAME,
+                    reverse('orders:created'),
+                    order.success_token
+                )
+            },
+            "capture": True,
+            "description": "Заказ №1"
+        }, uuid.uuid4())
+
+        order.yookassa_order_id = payment.id
+        order.save()
+
         user_products_in_order = []
         for product_id, products_data in cart.cart.items():
             product = Product.objects.get(id=product_id)
-            user = self.request.user
+            user = None if self.request.user.is_anonymous else self.request.user
             order_items = OrderItem(product=product, user=user, order=order)
             user_products_in_order.append(order_items)
         OrderItem.objects.bulk_create(user_products_in_order)
 
-        success_token = str(uuid.uuid4())
-        checkout_session = stripe.checkout.Session.create(
-            line_items=cart.get_stripe_products_data(),
-            metadata={'order_id': order.id,
-                      'session_key': self.request.session.session_key,
-                      'success_token': success_token,
-                      },
-            mode='payment',
-            success_url='{}{}?token={}'.format(settings.DOMAIN_NAME, reverse('orders:created'), success_token),
-            cancel_url='{}{}'.format(settings.DOMAIN_NAME, reverse('catalog:category_list')),
-        )
-        return HttpResponseRedirect(checkout_session.url, status=303)
+        return HttpResponseRedirect(payment.confirmation['confirmation_url'])
 
 
-def fulfill_checkout(session_id):
-    order = Order.objects.get(id=int(session_id.metadata['order_id']))
-    order.update_after_success_payment(session_id)
-    if order.initiator:
-        for basket in Basket.objects.filter(user=order.initiator):
-            basket.delete()
-    session_key = session_id.metadata.get('session_key')
-    session = SessionStore(session_key=session_key)
-    cart = Cart(session)
-    cart.cart_wipe()
-    session.save()
+class OrderAfterPaymentView(TemplateView):
+    template_name = 'orders/success_order.html'
 
-
-@csrf_exempt
-def my_webhook_view(request):
-    payload = request.body
-    sig_header = request.META['HTTP_STRIPE_SIGNATURE']
-    event = None
-
-    try:
-        event = stripe.Webhook.construct_event(
-            payload, sig_header, settings.STRIPE_WEBHOOK_SECRET
-        )
-    except ValueError:
-        # Invalid payload
-        return HttpResponse(status=400)
-    except stripe.error.SignatureVerificationError:
-        # Invalid signature
-        return HttpResponse(status=400)
-
-    if (
-            event['type'] == 'checkout.session.completed'
-            or event['type'] == 'checkout.session.async_payment_succeeded'
-    ):
-        fulfill_checkout(event['data']['object'])
-
-    return HttpResponse(status=200)
+    def get(self, request, *args, **kwargs):
+        if Order.objects.filter(success_token=request.GET.get('token')).exists():
+            user_order_details = Order.objects.get(success_token=request.GET.get('token'))
+            payment_info = Payment.find_one(user_order_details.yookassa_order_id)
+            if payment_info.status == 'succeeded':
+                user_order_details.status = 1
+                user_order_details.save()
+                cart = Cart(request.session)
+                cart.cart_wipe()
+                return render(request, 'orders/success_order.html')
+        return render(request, 'orders/order_error.html')

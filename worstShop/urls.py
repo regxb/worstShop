@@ -24,7 +24,6 @@ from rest_framework_simplejwt.views import TokenObtainPairView
 
 from catalog.api import ProductApiView
 from orders.api import OrderApiView
-from orders.views import my_webhook_view
 
 router = routers.DefaultRouter()
 router.register(r'products', ProductApiView)
@@ -36,7 +35,6 @@ urlpatterns = [
     path('user/', include('users.urls', namespace='users')),
     path('cart/', include('cart.urls', namespace='cart')),
     path('order/', include('orders.urls', namespace='orders')),
-    path('webhook/stripe/', my_webhook_view, name='stripe-webhook'),
     path('api/', include(router.urls)),
     path('api/token/', TokenObtainPairView.as_view(), name='token_obtain_pair'),
 ]

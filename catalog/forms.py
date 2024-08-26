@@ -16,4 +16,3 @@ class ReviewForm(forms.ModelForm):
         model = Review
         fields = ['rating', 'comment',]
         labels = {'rating': ''}
-

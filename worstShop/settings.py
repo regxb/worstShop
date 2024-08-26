@@ -42,7 +42,10 @@ env = environ.Env(
     STRIPE_WEBHOOK_SECRET=str,
 
     TELEGRAM_BOT_TOKEN=str,
-    TELEGRAM_BOT_NAME=str
+    TELEGRAM_BOT_NAME=str,
+
+    YOOKASSA_ACCOUNT_ID=int,
+    YOOKASSA_SECRET_KEY=str,
 )
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -255,3 +258,8 @@ REST_FRAMEWORK = {
         'rest_framework_simplejwt.authentication.JWTAuthentication',
     ),
 }
+
+# Yookassa
+
+YOOKASSA_ACCOUNT_ID = env('YOOKASSA_ACCOUNT_ID')
+YOOKASSA_SECRET_KEY = env('YOOKASSA_SECRET_KEY')

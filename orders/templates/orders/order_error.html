@@ -1,0 +1,25 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load custom_filters %}
+
+
+{% block content %}
+  
+    <section class="h-100 h-custom" style="background-color: #eee;">
+      <div class="container py-5 h-100">
+        <div class="row d-flex justify-content-center align-items-center h-100">
+          <div class="col-12">
+            <div class="card card-registration card-registration-2" style="border-radius: 15px;">
+              <div class="text-center card-body p-0" style="font-family: PTRootUIWeb, sans-serif;">
+                <h3 class="mt-5 mb-2">Что-то пошло не так...</h3>
+                <h6>Ваш заказ не был оформлен, попробуйте еще раз.</h6>
+                <a href="{% url 'orders:create' %}" class="btn btn-primary mb-5 mt-2 rounded-pill text-white">Вернуться
+                  к оформлению заказа</a>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  
+{% endblock %}

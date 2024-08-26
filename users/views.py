@@ -172,6 +172,12 @@ def telegram_auth(request):
             user = User.objects.get(telegram_id=data['id'])
             login(request, user)
 
+            cart = Cart(request.session)
+            if cart:
+                cart.transfer_cart_to_basket(user, action='login')
+            for basket in Basket.objects.filter(user=user):
+                cart.add(basket.product, quantity=basket.quantity)
+
         except TelegramDataIsOutdatedError:
             return redirect('users:login')
 

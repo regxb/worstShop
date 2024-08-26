@@ -1,3 +1,5 @@
+import uuid
+
 from django.db import models
 
 from cart.cart import Cart
@@ -30,6 +32,7 @@ class Order(models.Model):
     status = models.SmallIntegerField(default=CREATED, choices=STATUS_CHOICES)
     price = models.DecimalField(max_digits=22, decimal_places=0, blank=True, null=True)
     success_token = models.CharField(max_length=36, blank=True, null=True, unique=True)
+    yookassa_order_id = models.CharField(max_length=36, blank=True, null=True, unique=True)
 
     def __str__(self):
         return f'Заказ#{self.id} для {self.first_name} {self.last_name}'
@@ -58,7 +61,7 @@ class Order(models.Model):
                     'slug': product.slug
                 })
             self.products['products'] = products_data_list
-
+        self.success_token = uuid.uuid4()
         self.price = self.get_order_price()
 
     def update_after_success_payment(self, session_id):
@@ -68,13 +71,13 @@ class Order(models.Model):
 
     def get_order_price(self):
         total_price = 0
-        for order_details in self.products.values():
-            for product in order_details:
+        for order_products in self.products.values():
+            for product in order_products:
                 total_price += product['price']
         return round(total_price)
 
 
 class OrderItem(models.Model):
     order = models.ForeignKey(Order, on_delete=models.CASCADE)
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    user = models.ForeignKey(User, on_delete=models.CASCADE, null=True, blank=True)
     product = models.ForeignKey(Product, on_delete=models.CASCADE)

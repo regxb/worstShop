@@ -94,3 +94,4 @@ class ReviewCreateView(CreateView):
         form.instance.user = self.request.user
         form.instance.product = product
         return super().form_valid(form)
+

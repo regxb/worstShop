@@ -1,1 +1,1 @@
-My test first project
+My first django project

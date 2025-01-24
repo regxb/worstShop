@@ -14,7 +14,15 @@ WorstShop is a minimalist e-commerce application designed to demonstrate essenti
 - **Guest Checkout**: Complete purchases without the need to register or log in.
 - **Payment Integration**: Secure payment processing with YooMoney.
 
-![image alt](https://github.com/regxb/worstShop/blob/abd7793fb5f8090389e8ce2c0d8788f79cc72215/img.png)
-![image alt](https://github.com/regxb/worstShop/blob/e12e88bb3fae409a81c1eac6e99634bfc5044631/img_1.png)
-![image alt](https://github.com/regxb/worstShop/blob/e12e88bb3fae409a81c1eac6e99634bfc5044631/img_2.png)
-![image alt](https://github.com/regxb/worstShop/blob/e12e88bb3fae409a81c1eac6e99634bfc5044631/img_3.png)
+### Product Catalog
+![Product Catalog](https://github.com/regxb/worstShop/blob/abd7793fb5f8090389e8ce2c0d8788f79cc72215/img.png)
+
+### Category Selection
+![Category Selection](https://github.com/regxb/worstShop/blob/e12e88bb3fae409a81c1eac6e99634bfc5044631/img_1.png)
+
+### Shopping Cart
+![Shopping Cart](https://github.com/regxb/worstShop/blob/e12e88bb3fae409a81c1eac6e99634bfc5044631/img_2.png)
+
+### Order Checkout
+![Order Checkout](https://github.com/regxb/worstShop/blob/e12e88bb3fae409a81c1eac6e99634bfc5044631/img_3.png)
+
